@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Книга рецептов</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>📖 Книга рецептов</h1>
+        <nav>
+            <button id="nav-products" class="nav-btn active">Продукты</button>
+            <button id="nav-dishes" class="nav-btn">Блюда</button>
+        </nav>
+    </header>
+
+    <main id="app-content">
+        <!-- Контент будет рендериться динамически -->
+    </main>
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <span class="modal-close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
