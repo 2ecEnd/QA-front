@@ -1,3 +1,4 @@
+// ===== ФОРМА БЛЮДА (создание/редактирование) =====
 import { api } from '../api.js';
 import { Dish, DishCreateDto, Product, DishCategory, DishFlag } from '../types.js';
 import { showNotification, categoryLabels, extractMacroCategory, formatNumber } from '../utils.js';
@@ -19,8 +20,11 @@ export class DishFormPage {
   private productSelect!: HTMLSelectElement;
   private ingredientQuantityInput!: HTMLInputElement;
   private ingredientsListDiv!: HTMLDivElement;
-  private calculatedFields: { calories: number; proteins: number; fats: number; carbohydrates: number; portionSize: number } = 
-    { calories: 0, proteins: 0, fats: 0, carbohydrates: 0, portionSize: 0 };
+  private calculatedFields = { calories: 0, proteins: 0, fats: 0, carbohydrates: 0, portionSize: 0 };
+  
+  // Фотографии
+  private photoUrls: string[] = [];
+  private newPhotoFiles: File[] = [];
 
   constructor(container: HTMLElement, params?: { id?: string }) {
     this.container = container;
@@ -28,7 +32,7 @@ export class DishFormPage {
   }
 
   async render() {
-    // Загружаем продукты для выпадающего списка
+    // Загрузка списка продуктов для выпадающего списка
     try {
       this.availableProducts = await api.getProducts();
     } catch (err) {
@@ -40,7 +44,7 @@ export class DishFormPage {
       try {
         this.dish = await api.getDish(this.dishId);
         initialData = this.dish;
-        // Преобразуем ингредиенты в наш формат
+        this.photoUrls = this.dish.photoUrls || [];
         this.ingredients = this.dish.ingredients.map(ing => ({
           productId: ing.product.id,
           productName: ing.product.name,
@@ -60,7 +64,7 @@ export class DishFormPage {
           <div class="form-group">
             <label for="name">Название *</label>
             <input type="text" id="name" name="name" required minlength="2" value="${initialData.name || ''}">
-            <small>Можно использовать макросы: !десерт, !первое и т.д.</small>
+            <small>Можно использовать макросы: !десерт, !первое, !второе, !напиток, !салат, !суп, !перекус</small>
           </div>
 
           <div class="form-row">
@@ -75,6 +79,7 @@ export class DishFormPage {
             </div>
           </div>
 
+          <!-- БЛОК ИНГРЕДИЕНТОВ -->
           <h3>Состав блюда</h3>
           <div class="ingredients-section">
             <div class="ingredient-add">
@@ -89,6 +94,7 @@ export class DishFormPage {
             <div id="ingredients-list" class="ingredients-list"></div>
           </div>
 
+          <!-- БЛОК КБЖУ (авторасчёт) -->
           <div class="form-row">
             <div class="form-group">
               <label for="calories">Калорийность (ккал/порц.)</label>
@@ -116,6 +122,7 @@ export class DishFormPage {
             </div>
           </div>
 
+          <!-- ФЛАГИ (доступность зависит от состава) -->
           <div class="form-group">
             <label>Дополнительные флаги</label>
             <div class="checkbox-group" id="flags-group">
@@ -123,7 +130,18 @@ export class DishFormPage {
               <label><input type="checkbox" id="flag-gluten" ${initialData.flags?.includes('GLUTEN_FREE') ? 'checked' : ''} disabled> Без глютена</label>
               <label><input type="checkbox" id="flag-sugar" ${initialData.flags?.includes('SUGAR_FREE') ? 'checked' : ''} disabled> Без сахара</label>
             </div>
-            <small>Доступность флагов зависит от ингредиентов</small>
+            <small>Доступность флагов определяется составом блюда</small>
+          </div>
+
+          <!-- БЛОК ФОТОГРАФИЙ -->
+          <div class="form-group">
+            <label>Фотографии (до 5)</label>
+            <div class="photo-upload-area">
+              <div id="photo-previews" class="photo-previews"></div>
+              <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
+              <button type="button" class="btn btn-outline" id="add-photo-btn">+ Добавить фото</button>
+            </div>
+            <small>Поддерживаются JPG, PNG. Максимум 5 изображений.</small>
           </div>
 
           <div class="form-actions">
@@ -135,17 +153,69 @@ export class DishFormPage {
       </div>
     `;
 
-    // Кэшируем элементы
+    // Кэширование элементов
     this.productSelect = document.getElementById('product-select') as HTMLSelectElement;
     this.ingredientQuantityInput = document.getElementById('ingredient-quantity') as HTMLInputElement;
     this.ingredientsListDiv = document.getElementById('ingredients-list') as HTMLDivElement;
 
+    this.initPhotoUpload();
     this.bindEvents();
     this.renderIngredientsList();
     this.recalculateNutrition();
     this.updateFlagsAvailability();
   }
 
+  // ----- ФОТОГРАФИИ (аналогично продукту) -----
+  private initPhotoUpload() {
+    const photoInput = document.getElementById('photo-input') as HTMLInputElement;
+    const addBtn = document.getElementById('add-photo-btn');
+    const previewsDiv = document.getElementById('photo-previews')!;
+
+    this.renderPreviews(previewsDiv);
+
+    addBtn?.addEventListener('click', () => photoInput.click());
+
+    photoInput?.addEventListener('change', () => {
+      const files = Array.from(photoInput.files || []);
+      const totalCount = this.photoUrls.length + this.newPhotoFiles.length + files.length;
+      if (totalCount > 5) {
+        showNotification('Максимум 5 изображений', 'error');
+        photoInput.value = '';
+        return;
+      }
+      this.newPhotoFiles.push(...files);
+      this.renderPreviews(previewsDiv);
+      photoInput.value = '';
+    });
+
+    previewsDiv.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('remove-photo')) {
+        const index = parseInt(target.dataset.index!);
+        const type = target.dataset.type!;
+        if (type === 'url') {
+          this.photoUrls.splice(index, 1);
+        } else {
+          this.newPhotoFiles.splice(index, 1);
+        }
+        this.renderPreviews(previewsDiv);
+      }
+    });
+  }
+
+  private renderPreviews(container: HTMLElement) {
+    let html = '';
+    this.photoUrls.forEach((url, idx) => {
+      html += `<div class="photo-preview"><img src="${url}"><button type="button" class="remove-photo" data-type="url" data-index="${idx}">✕</button></div>`;
+    });
+    this.newPhotoFiles.forEach((file, idx) => {
+      const objectUrl = URL.createObjectURL(file);
+      html += `<div class="photo-preview"><img src="${objectUrl}"><button type="button" class="remove-photo" data-type="file" data-index="${idx}">✕</button></div>`;
+    });
+    container.innerHTML = html || '<p class="muted">Нет фотографий</p>';
+  }
+
+  // ----- СОБЫТИЯ -----
   private bindEvents() {
     document.getElementById('add-ingredient-btn')?.addEventListener('click', () => this.addIngredient());
     document.getElementById('create-product-modal-btn')?.addEventListener('click', () => this.openCreateProductModal());
@@ -154,7 +224,6 @@ export class DishFormPage {
     const form = document.getElementById('dish-form') as HTMLFormElement;
     form?.addEventListener('submit', (e) => this.handleSubmit(e));
 
-    // Пересчёт при ручном изменении количества ингредиента (через делегирование)
     this.ingredientsListDiv.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.classList.contains('remove-ingredient')) {
@@ -165,8 +234,6 @@ export class DishFormPage {
         this.updateFlagsAvailability();
       }
     });
-
-    // При изменении состава (добавление через кнопку) пересчёт уже вызывается
   }
 
   private addIngredient() {
@@ -207,10 +274,9 @@ export class DishFormPage {
     const items = this.ingredients.map((ing, idx) => `
       <div class="ingredient-item">
         <span>${ing.productName} — ${formatNumber(ing.quantity)} г</span>
-        <button type="button" class="icon-btn remove-ingredient" data-index="${idx}">❌</button>
+        <button type="button" class="remove-ingredient" data-index="${idx}">❌</button>
       </div>
     `).join('');
-
     this.ingredientsListDiv.innerHTML = items;
   }
 
@@ -237,7 +303,6 @@ export class DishFormPage {
       portionSize: totalWeight,
     };
 
-    // Заполняем поля формы, если они не были изменены пользователем (можно реализовать флаг, но для простоты всегда обновляем)
     (document.getElementById('calories') as HTMLInputElement).value = totalCalories.toFixed(1);
     (document.getElementById('proteins') as HTMLInputElement).value = totalProteins.toFixed(1);
     (document.getElementById('fats') as HTMLInputElement).value = totalFats.toFixed(1);
@@ -262,7 +327,6 @@ export class DishFormPage {
 
     this.setFlagsEnabled(veganAvailable, glutenFreeAvailable, sugarFreeAvailable);
 
-    // Снимаем недоступные флаги
     const veganCheck = document.getElementById('flag-vegan') as HTMLInputElement;
     const glutenCheck = document.getElementById('flag-gluten') as HTMLInputElement;
     const sugarCheck = document.getElementById('flag-sugar') as HTMLInputElement;
@@ -279,9 +343,7 @@ export class DishFormPage {
 
   private async openCreateProductModal() {
     const modal = new ProductFormModal(async (newProduct: Product) => {
-      // Обновить список доступных продуктов
       this.availableProducts = await api.getProducts();
-      // Обновить select
       this.productSelect.innerHTML = `<option value="">Выберите продукт</option>` + 
         this.availableProducts.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
       showNotification(`Продукт "${newProduct.name}" добавлен`, 'success');
@@ -308,9 +370,7 @@ export class DishFormPage {
     name = cleanedName;
 
     let category: DishCategory | null = formData.get('category') as DishCategory | null;
-    if (!category && macroCat) {
-      category = macroCat as DishCategory;
-    }
+    if (!category && macroCat) category = macroCat;
     if (!category) {
       errorDiv.textContent = 'Укажите категорию (вручную или через макрос)';
       return;
@@ -320,6 +380,19 @@ export class DishFormPage {
     if ((document.getElementById('flag-vegan') as HTMLInputElement).checked) flags.push('VEGAN');
     if ((document.getElementById('flag-gluten') as HTMLInputElement).checked) flags.push('GLUTEN_FREE');
     if ((document.getElementById('flag-sugar') as HTMLInputElement).checked) flags.push('SUGAR_FREE');
+
+    // Загрузка фотографий
+    const uploadedUrls: string[] = [];
+    for (const file of this.newPhotoFiles) {
+      try {
+        const res = await api.uploadImage(file);
+        uploadedUrls.push(res.url);
+      } catch (err: any) {
+        errorDiv.textContent = `Ошибка загрузки изображения: ${err.message}`;
+        return;
+      }
+    }
+    const finalPhotoUrls = [...this.photoUrls, ...uploadedUrls];
 
     const data: DishCreateDto = {
       name,
@@ -331,10 +404,10 @@ export class DishFormPage {
       category,
       flags,
       ingredients: this.ingredients.map(ing => ({ productId: ing.productId, quantity: ing.quantity })),
-      photoUrls: [],
+      photoUrls: finalPhotoUrls,
     };
 
-    // Валидация суммы БЖУ на 100 г
+    // Проверка суммы БЖУ на 100 г
     const portion = data.portionSize!;
     const sum100 = ((data.proteins || 0) + (data.fats || 0) + (data.carbohydrates || 0)) / portion * 100;
     if (sum100 > 100) {

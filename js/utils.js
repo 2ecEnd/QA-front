@@ -1,3 +1,4 @@
+/** Показать всплывающее уведомление */
 export function showNotification(message, type = 'info') {
     const container = document.getElementById('notification-container') || createNotificationContainer();
     const toast = document.createElement('div');
@@ -17,7 +18,7 @@ function createNotificationContainer() {
     document.body.appendChild(container);
     return container;
 }
-// Форматирование категорий и флагов для отображения
+/** Человеко-читаемые названия категорий продуктов */
 export const categoryLabels = {
     FROZEN: 'Замороженный',
     MEAT: 'Мясной',
@@ -36,20 +37,23 @@ export const categoryLabels = {
     SOUP: 'Суп',
     SNACK: 'Перекус',
 };
+/** Человеко-читаемые статусы готовности */
 export const cookingLabels = {
     RAW: 'Сырой',
     NEEDS_COOKING: 'Требует готовки',
     READY_TO_EAT: 'Готов к употреблению',
 };
+/** Человеко-читаемые названия флагов */
 export const flagLabels = {
     VEGAN: 'Веган',
     GLUTEN_FREE: 'Без глютена',
     SUGAR_FREE: 'Без сахара',
 };
+/** Форматирование числа с одним знаком после запятой */
 export function formatNumber(value, digits = 1) {
     return value.toFixed(digits);
 }
-// Макросы для категорий блюд
+/** Извлечение категории из макроса в названии блюда */
 const macroMap = {
     '!десерт': 'DESSERT',
     '!первое': 'FIRST_COURSE',

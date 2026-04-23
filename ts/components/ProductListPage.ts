@@ -1,3 +1,4 @@
+// ===== СПИСОК ПРОДУКТОВ =====
 import { api } from '../api.js';
 import { Product, ProductFilter } from '../types.js';
 import { showNotification, categoryLabels, cookingLabels, flagLabels } from '../utils.js';
@@ -62,7 +63,6 @@ export class ProductListPage {
       this.loadProducts();
     });
 
-    // Делегирование событий для сортировки и действий со строками
     const tableContainer = document.getElementById('products-table-container');
     tableContainer?.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;

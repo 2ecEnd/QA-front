@@ -1,3 +1,4 @@
+// ===== ДЕТАЛИ ПРОДУКТА =====
 import { api } from '../api.js';
 import { Product } from '../types.js';
 import { categoryLabels, cookingLabels, flagLabels } from '../utils.js';
@@ -22,6 +23,10 @@ export class ProductDetailPage {
   }
 
   private displayProduct(product: Product) {
+    const photosHtml = product.photoUrls.length > 0
+      ? `<div class="photo-gallery">${product.photoUrls.map(url => `<img src="${url}" alt="фото продукта">`).join('')}</div>`
+      : '<p class="muted">Нет фотографий</p>';
+
     this.container.innerHTML = `
       <div class="detail-container">
         <div class="detail-header">
@@ -46,6 +51,11 @@ export class ProductDetailPage {
           <p><strong>Готовность:</strong> ${cookingLabels[product.cookingRequired] || product.cookingRequired}</p>
           <p><strong>Флаги:</strong> ${product.flags.map(f => flagLabels[f] || f).join(', ') || '—'}</p>
           ${product.composition ? `<p><strong>Состав:</strong> ${product.composition}</p>` : ''}
+        </div>
+
+        <div class="detail-section">
+          <h3>Фотографии</h3>
+          ${photosHtml}
         </div>
 
         <div class="detail-section">

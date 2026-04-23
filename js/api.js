@@ -32,7 +32,10 @@ export const api = {
     // Продукты
     getProducts: (filter = {}) => request(`/products${buildQueryString(filter)}`),
     getProduct: (id) => request(`/products/${id}`),
-    createProduct: (dto) => request('/products/create', { method: 'POST', body: JSON.stringify(dto) }),
+    createProduct: (dto) => {
+        console.log(dto);
+        return request('/products/create', { method: 'POST', body: JSON.stringify(dto) });
+    },
     updateProduct: (id, dto) => request(`/products/${id}/update`, { method: 'PUT', body: JSON.stringify(dto) }),
     deleteProduct: (id) => request(`/products/${id}/delete`, { method: 'DELETE' }),
     // Блюда
@@ -41,4 +44,18 @@ export const api = {
     createDish: (dto) => request('/dishes/create', { method: 'POST', body: JSON.stringify(dto) }),
     updateDish: (id, dto) => request(`/dishes/${id}/update`, { method: 'PUT', body: JSON.stringify(dto) }),
     deleteDish: (id) => request(`/dishes/${id}/delete`, { method: 'DELETE' }),
+    // Загрузка изображений
+    uploadImage: async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await fetch(`${API_BASE}/upload/image`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || `HTTP ${response.status}`);
+        }
+        return response.json();
+    }
 };

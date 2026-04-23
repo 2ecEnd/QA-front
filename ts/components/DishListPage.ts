@@ -1,3 +1,4 @@
+// ===== СПИСОК БЛЮД =====
 import { api } from '../api.js';
 import { Dish, DishFilter } from '../types.js';
 import { showNotification, categoryLabels, flagLabels } from '../utils.js';
@@ -21,9 +22,9 @@ export class DishListPage {
         <input type="text" id="search-name" placeholder="Поиск по названию..." class="filter-input" />
         <select id="filter-category" class="filter-select">
           <option value="">Все категории</option>
-          ${Object.entries(categoryLabels).filter(([k]) => 
-            ['DESSERT','FIRST_COURSE','SECOND_COURSE','DRINK','SALAD','SOUP','SNACK'].includes(k)
-          ).map(([val, label]) => `<option value="${val}">${label}</option>`).join('')}
+          ${Object.entries(categoryLabels)
+            .filter(([k]) => ['DESSERT','FIRST_COURSE','SECOND_COURSE','DRINK','SALAD','SOUP','SNACK'].includes(k))
+            .map(([val, label]) => `<option value="${val}">${label}</option>`).join('')}
         </select>
         <label class="filter-checkbox"><input type="checkbox" id="flag-vegan"> Веган</label>
         <label class="filter-checkbox"><input type="checkbox" id="flag-gluten"> Без глютена</label>
@@ -113,9 +114,9 @@ export class DishListPage {
         <td>${d.portionSize.toFixed(0)} г</td>
         <td>${d.flags.map(f => flagLabels[f] || f).join(', ') || '—'}</td>
         <td>
-          <button class="icon-btn view-dish" data-id="${d.id}">👁️</button>
-          <button class="icon-btn edit-dish" data-id="${d.id}">✏️</button>
-          <button class="icon-btn delete-dish" data-id="${d.id}">🗑️</button>
+          <button class="icon-btn view-dish" data-id="${d.id}" title="Просмотр">👁️</button>
+          <button class="icon-btn edit-dish" data-id="${d.id}" title="Редактировать">✏️</button>
+          <button class="icon-btn delete-dish" data-id="${d.id}" title="Удалить">🗑️</button>
         </td>
       </tr>
     `).join('');

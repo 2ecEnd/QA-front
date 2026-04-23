@@ -1,3 +1,4 @@
+// ===== МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ПРОДУКТА =====
 import { api } from '../api.js';
 import { showNotification, categoryLabels, cookingLabels } from '../utils.js';
 export class ProductFormModal {
@@ -52,11 +53,15 @@ export class ProductFormModal {
           <div class="form-row">
             <div class="form-group">
               <label>Категория *</label>
-              <select id="modal-category" required>${Object.entries(categoryLabels).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+              <select id="modal-category" required>
+                ${Object.entries(categoryLabels).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+              </select>
             </div>
             <div class="form-group">
               <label>Готовность *</label>
-              <select id="modal-cooking" required>${Object.entries(cookingLabels).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select>
+              <select id="modal-cooking" required>
+                ${Object.entries(cookingLabels).map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+              </select>
             </div>
           </div>
           <div class="form-actions">

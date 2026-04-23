@@ -1,10 +1,11 @@
+// ===== ГЛАВНЫЙ ФАЙЛ ПРИЛОЖЕНИЯ =====
 import { initRouter, addRoute, navigate } from './router.js';
-import { ProductListPage } from './components/ProductList.js';
-import { ProductFormPage } from './components/ProductForm.js';
-import { ProductDetailPage } from './components/ProductDetail.js';
-import { DishListPage } from './components/DishList.js';
-import { DishFormPage } from './components/DishForm.js';
-import { DishDetailPage } from './components/DishDetail.js';
+import { ProductListPage } from './components/ProductListPage.js';
+import { ProductFormPage } from './components/ProductFormPage.js';
+import { ProductDetailPage } from './components/ProductDetailPage.js';
+import { DishListPage } from './components/DishListPage.js';
+import { DishFormPage } from './components/DishFormPage.js';
+import { DishDetailPage } from './components/DishDetailPage.js';
 function setupRoutes() {
     const container = document.getElementById('app-content');
     addRoute(/^\/products\/?$/, async () => {
@@ -36,7 +37,6 @@ function setupRoutes() {
         navigate('/products');
     });
 }
-// Навигация в шапке
 function initNavigation() {
     document.getElementById('nav-products')?.addEventListener('click', () => navigate('/products'));
     document.getElementById('nav-dishes')?.addEventListener('click', () => navigate('/dishes'));

@@ -1,3 +1,4 @@
+// ===== API КЛИЕНТ =====
 import { Product, ProductCreateDto, ProductFilter, Dish, DishCreateDto, DishFilter } from './types.js';
 
 const API_BASE = 'http://localhost:8080';
@@ -42,8 +43,10 @@ export const api = {
   getProduct: (id: string): Promise<Product> =>
     request(`/products/${id}`),
 
-  createProduct: (dto: ProductCreateDto): Promise<Product> =>
-    request('/products/create', { method: 'POST', body: JSON.stringify(dto) }),
+  createProduct: (dto: ProductCreateDto): Promise<Product> =>{
+    console.log(dto);
+    return request('/products/create', { method: 'POST', body: JSON.stringify(dto) })
+  },
 
   updateProduct: (id: string, dto: ProductCreateDto): Promise<Product> =>
     request(`/products/${id}/update`, { method: 'PUT', body: JSON.stringify(dto) }),
@@ -66,4 +69,19 @@ export const api = {
 
   deleteDish: (id: string): Promise<void> =>
     request(`/dishes/${id}/delete`, { method: 'DELETE' }),
+
+  // Загрузка изображений
+  uploadImage: async (file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_BASE}/upload/image`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
 };

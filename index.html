@@ -4,28 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Книга рецептов</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
     <header>
         <h1>📖 Книга рецептов</h1>
         <nav>
-            <button id="nav-products" class="nav-btn active">Продукты</button>
-            <button id="nav-dishes" class="nav-btn">Блюда</button>
+            <button id="nav-products">Продукты</button>
+            <button id="nav-dishes">Блюда</button>
         </nav>
     </header>
 
     <main id="app-content">
-        <!-- Контент будет рендериться динамически -->
+        <!-- Контент рендерится динамически через роутер -->
     </main>
 
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal">
-            <span class="modal-close">&times;</span>
-            <div id="modal-body"></div>
-        </div>
-    </div>
-
+    <!-- Модальное окно будет создаваться динамически, контейнер для уведомлений тоже -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>

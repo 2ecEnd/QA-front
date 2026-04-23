@@ -10,7 +10,6 @@ export async function handleRouteChange() {
     const container = document.getElementById('app-content');
     if (!container)
         return;
-    // Показываем индикатор загрузки
     container.innerHTML = '<div class="loader">Загрузка...</div>';
     for (const route of routes) {
         const match = hash.match(route.pattern);
@@ -31,9 +30,7 @@ export async function handleRouteChange() {
     }
     container.innerHTML = '<h2>Страница не найдена</h2><a href="#/">На главную</a>';
 }
-// Инициализация
 export function initRouter() {
     window.addEventListener('hashchange', handleRouteChange);
-    // Запускаем обработку начального хэша
     handleRouteChange();
 }

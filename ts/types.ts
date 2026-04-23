@@ -1,3 +1,5 @@
+// ===== ТИПЫ ДАННЫХ =====
+
 export interface Product {
   id: string;
   name: string;
@@ -50,7 +52,7 @@ export type DishCategory =
 
 export type DishFlag = 'VEGAN' | 'GLUTEN_FREE' | 'SUGAR_FREE';
 
-// DTO для создания/обновления (без ID и системных полей)
+// DTO для создания/обновления
 export interface ProductCreateDto {
   name: string;
   photoUrls?: string[];
@@ -72,12 +74,12 @@ export interface DishCreateDto {
   fats?: number;
   carbohydrates?: number;
   ingredients: { productId: string; quantity: number }[];
-  portionSize?: number; // может вычисляться
+  portionSize?: number;
   category?: DishCategory | null;
   flags?: DishFlag[];
 }
 
-// Фильтры для запросов
+// Фильтры
 export interface ProductFilter {
   name?: string;
   category?: string;

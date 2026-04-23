@@ -1,6 +1,7 @@
+// ===== ДЕТАЛИ БЛЮДА =====
 import { api } from '../api.js';
 import { Dish } from '../types.js';
-import { categoryLabels, flagLabels } from '../utils.js';
+import { categoryLabels, flagLabels, formatNumber } from '../utils.js';
 import { navigate } from '../router.js';
 
 export class DishDetailPage {
@@ -22,6 +23,10 @@ export class DishDetailPage {
   }
 
   private displayDish(dish: Dish) {
+    const photosHtml = dish.photoUrls.length > 0
+      ? `<div class="photo-gallery">${dish.photoUrls.map(url => `<img src="${url}" alt="фото блюда">`).join('')}</div>`
+      : '<p class="muted">Нет фотографий</p>';
+
     this.container.innerHTML = `
       <div class="detail-container">
         <div class="detail-header">
@@ -33,17 +38,17 @@ export class DishDetailPage {
         </div>
 
         <div class="detail-section">
-          <h3>Пищевая ценность на порцию (${dish.portionSize} г)</h3>
-          <p>Калорийность: ${dish.calories.toFixed(1)} ккал</p>
-          <p>Белки: ${dish.proteins.toFixed(1)} г</p>
-          <p>Жиры: ${dish.fats.toFixed(1)} г</p>
-          <p>Углеводы: ${dish.carbohydrates.toFixed(1)} г</p>
+          <h3>Пищевая ценность на порцию (${formatNumber(dish.portionSize)} г)</h3>
+          <p>Калорийность: ${formatNumber(dish.calories)} ккал</p>
+          <p>Белки: ${formatNumber(dish.proteins)} г</p>
+          <p>Жиры: ${formatNumber(dish.fats)} г</p>
+          <p>Углеводы: ${formatNumber(dish.carbohydrates)} г</p>
         </div>
 
         <div class="detail-section">
           <h3>Состав</h3>
           <ul>
-            ${dish.ingredients.map(ing => `<li>${ing.product.name} — ${ing.quantity} г</li>`).join('')}
+            ${dish.ingredients.map(ing => `<li>${ing.product.name} — ${formatNumber(ing.quantity)} г</li>`).join('')}
           </ul>
         </div>
 
@@ -51,6 +56,11 @@ export class DishDetailPage {
           <h3>Характеристики</h3>
           <p><strong>Категория:</strong> ${categoryLabels[dish.category] || dish.category}</p>
           <p><strong>Флаги:</strong> ${dish.flags.map(f => flagLabels[f]).join(', ') || '—'}</p>
+        </div>
+
+        <div class="detail-section">
+          <h3>Фотографии</h3>
+          ${photosHtml}
         </div>
       </div>
     `;
