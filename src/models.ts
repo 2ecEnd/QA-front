@@ -151,9 +151,9 @@ export const ProductCategoryLabels: Record<ProductCategory, string> = {
 };
 
 export const CookingNecessityLabels: Record<CookingNecessity, string> = {
-  [CookingNecessity.READY]: 'Готовый',
+  [CookingNecessity.READY]: 'Готовый к употреблению',
   [CookingNecessity.SEMI_FINISHED]: 'Полуфабрикат',
-  [CookingNecessity.RAW]: 'Сырой',
+  [CookingNecessity.RAW]: 'Требует приготовления',
 };
 
 export const DishCategoryLabels: Record<DishCategory, string> = {

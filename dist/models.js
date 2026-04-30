@@ -67,9 +67,9 @@ export const ProductCategoryLabels = {
     [ProductCategory.SWEETS]: 'Сладости',
 };
 export const CookingNecessityLabels = {
-    [CookingNecessity.READY]: 'Готовый',
+    [CookingNecessity.READY]: 'Готовый к употреблению',
     [CookingNecessity.SEMI_FINISHED]: 'Полуфабрикат',
-    [CookingNecessity.RAW]: 'Сырой',
+    [CookingNecessity.RAW]: 'Требует приготовления',
 };
 export const DishCategoryLabels = {
     [DishCategory.DESSERT]: 'Десерт',
