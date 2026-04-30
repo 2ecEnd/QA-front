@@ -1,25 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Книга рецептов</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Книга рецептов</title>
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <header>
-        <h1>📖 Книга рецептов</h1>
-        <nav>
-            <button id="nav-products">Продукты</button>
-            <button id="nav-dishes">Блюда</button>
-        </nav>
-    </header>
+  <header class="header">
+    <div class="logo">📖 Книга <span>рецептов</span></div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-page="products">🍎 Продукты</button>
+      <button class="nav-tab" data-page="dishes">🍽️ Блюда</button>
+    </nav>
+  </header>
 
-    <main id="app-content">
-        <!-- Контент рендерится динамически через роутер -->
-    </main>
+  <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Модальное окно будет создаваться динамически, контейнер для уведомлений тоже -->
-    <script type="module" src="js/app.js"></script>
+  <main class="main">
+    <!-- Продукты -->
+    <div class="page active" id="page-products">
+      <div class="toolbar">
+        <input type="text" class="search-input" id="productSearch" placeholder="🔍 Поиск продуктов...">
+        <select class="filter-select" id="productCategoryFilter">
+          <option value="">Все категории</option>
+        </select>
+        <select class="filter-select" id="productCookingFilter">
+          <option value="">Готовность: все</option>
+        </select>
+        <select class="filter-select" id="productSort">
+          <option value="">Сортировка: по умолчанию</option>
+          <option value="NAME">По названию</option>
+          <option value="CALORIE_CONTENT">По калорийности</option>
+          <option value="PROTEINS">По белкам</option>
+          <option value="FATS">По жирам</option>
+          <option value="CARBOHYDRATES">По углеводам</option>
+        </select>
+        <div class="flag-chips" id="productFlagChips">
+          <span class="flag-chip" data-flag="VEGAN">🌱 Веган</span>
+          <span class="flag-chip" data-flag="GLUTEN_FREE">🌾 Без глютена</span>
+          <span class="flag-chip" data-flag="SUGAR_FREE">🍬 Без сахара</span>
+        </div>
+        <button class="btn btn-primary" id="btnAddProduct">+ Добавить продукт</button>
+      </div>
+      <div class="card-grid" id="productList"></div>
+    </div>
+
+    <!-- Блюда -->
+    <div class="page" id="page-dishes">
+      <div class="toolbar">
+        <input type="text" class="search-input" id="dishSearch" placeholder="🔍 Поиск блюд...">
+        <select class="filter-select" id="dishCategoryFilter">
+          <option value="">Все категории</option>
+        </select>
+        <div class="flag-chips" id="dishFlagChips">
+          <span class="flag-chip" data-flag="VEGAN">🌱 Веган</span>
+          <span class="flag-chip" data-flag="GLUTEN_FREE">🌾 Без глютена</span>
+          <span class="flag-chip" data-flag="SUGAR_FREE">🍬 Без сахара</span>
+        </div>
+        <button class="btn btn-primary" id="btnAddDish">+ Добавить блюдо</button>
+      </div>
+      <div class="card-grid" id="dishList"></div>
+    </div>
+  </main>
+
+  <div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <!-- Подключаем скомпилированный JS (предполагается, что tsc сконвертировал в dist/) -->
+  <script src="dist/app.js" type="module"></script>
 </body>
 </html>
