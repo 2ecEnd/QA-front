@@ -18,22 +18,26 @@ export function renderProductList(products, container) {
             return `<span class="card-flag ${cls}">${FlagLabels[f]}</span>`;
         }).join('');
         return `
-        <div class="card" data-id="${p.Id}" data-type="product">
-          ${photosHtml}
-          <div class="card-header">
-            <span class="card-title">${escapeHtml(p.Name)}</span>
-            <span class="card-badge">${ProductCategoryLabels[p.Category]}</span>
-          </div>
-          <div class="card-meta">
-            <span>🔥 ${p.CalorieContent?.toFixed(1) ?? '—'} ккал</span>
-            <span>Б: ${p.Proteins?.toFixed(1) ?? '—'}</span>
-            <span>Ж: ${p.Fats?.toFixed(1) ?? '—'}</span>
-            <span>У: ${p.Carbohydrates?.toFixed(1) ?? '—'}</span>
-          </div>
-          ${flagsHtml ? `<div class="card-flags">${flagsHtml}</div>` : ''}
-        </div>`;
-    })
-        .join('');
+      <div class="card" data-id="${p.Id}" data-type="product">
+        ${photosHtml}
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(p.Name)}</span>
+          <span class="card-badge">${ProductCategoryLabels[p.Category]}</span>
+        </div>
+        <div class="card-meta">
+          <span>🔥 ${p.CalorieContent?.toFixed(1) ?? '—'} ккал</span>
+          <span>Б: ${p.Proteins?.toFixed(1) ?? '—'}</span>
+          <span>Ж: ${p.Fats?.toFixed(1) ?? '—'}</span>
+          <span>У: ${p.Carbohydrates?.toFixed(1) ?? '—'}</span>
+        </div>
+        ${flagsHtml ? `<div class="card-flags">${flagsHtml}</div>` : ''}
+        <!-- НОВЫЙ БЛОК -->
+        <div class="card-actions">
+          <button class="btn btn-outline btn-sm btn-edit" title="Редактировать">✏️</button>
+          <button class="btn btn-danger btn-sm btn-delete" title="Удалить">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
 }
 // ─── Рендер списка блюд ──────────────────────
 export function renderDishList(dishes, container) {
@@ -53,23 +57,27 @@ export function renderDishList(dishes, container) {
             return `<span class="card-flag ${cls}">${FlagLabels[f]}</span>`;
         }).join('');
         return `
-        <div class="card" data-id="${d.Id}" data-type="dish">
-          ${photosHtml}
-          <div class="card-header">
-            <span class="card-title">${escapeHtml(d.Name)}</span>
-            <span class="card-badge">${DishCategoryLabels[d.Category]}</span>
-          </div>
-          <div class="card-meta">
-            <span>🔥 ${d.CalorieContent?.toFixed(1) ?? '—'} ккал/порц</span>
-            <span>Б: ${d.Proteins?.toFixed(1) ?? '—'}</span>
-            <span>Ж: ${d.Fats?.toFixed(1) ?? '—'}</span>
-            <span>У: ${d.Carbohydrates?.toFixed(1) ?? '—'}</span>
-            <span>⚖️ ${d.Size?.toFixed(0) ?? '—'} г</span>
-          </div>
-          ${flagsHtml ? `<div class="card-flags">${flagsHtml}</div>` : ''}
-        </div>`;
-    })
-        .join('');
+      <div class="card" data-id="${d.Id}" data-type="dish">
+        ${photosHtml}
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(d.Name)}</span>
+          <span class="card-badge">${DishCategoryLabels[d.Category]}</span>
+        </div>
+        <div class="card-meta">
+          <span>🔥 ${d.CalorieContent?.toFixed(1) ?? '—'} ккал/порц</span>
+          <span>Б: ${d.Proteins?.toFixed(1) ?? '—'}</span>
+          <span>Ж: ${d.Fats?.toFixed(1) ?? '—'}</span>
+          <span>У: ${d.Carbohydrates?.toFixed(1) ?? '—'}</span>
+          <span>⚖️ ${d.Size?.toFixed(0) ?? '—'} г</span>
+        </div>
+        ${flagsHtml ? `<div class="card-flags">${flagsHtml}</div>` : ''}
+        <!-- НОВЫЙ БЛОК -->
+        <div class="card-actions">
+          <button class="btn btn-outline btn-sm btn-edit" title="Редактировать">✏️</button>
+          <button class="btn btn-danger btn-sm btn-delete" title="Удалить">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
 }
 // ─── Модальные окна ──────────────────────────
 export function openModal(html) {

@@ -787,6 +787,25 @@ document.addEventListener('DOMContentLoaded', () => {
             return; // если кнопка — не реагируем, пусть будет через window
         viewProduct(id);
     });
+    // Удаление / редактирование продуктов через делегирование
+    getElement('#productList').addEventListener('click', (e) => {
+        const target = e.target;
+        const card = target.closest('.card[data-type="product"]');
+        if (!card)
+            return;
+        const id = card.dataset.id;
+        if (target.closest('.btn-delete')) {
+            e.stopPropagation(); // чтобы не сработал просмотр
+            if (confirm(`Удалить продукт?`)) {
+                deleteProduct(id);
+            }
+        }
+        else if (target.closest('.btn-edit')) {
+            e.stopPropagation();
+            editProduct(id);
+        }
+        // иначе клик мимо кнопок — просмотр уже обрабатывается в существующем блоке
+    });
     getElement('#dishList').addEventListener('click', (e) => {
         const target = e.target;
         const card = target.closest('.card[data-type="dish"]');
@@ -796,6 +815,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.closest('.btn'))
             return;
         viewDish(id);
+    });
+    getElement('#dishList').addEventListener('click', (e) => {
+        const target = e.target;
+        const card = target.closest('.card[data-type="dish"]');
+        if (!card)
+            return;
+        const id = card.dataset.id;
+        if (target.closest('.btn-delete')) {
+            e.stopPropagation();
+            if (confirm(`Удалить блюдо?`)) {
+                deleteDish(id);
+            }
+        }
+        else if (target.closest('.btn-edit')) {
+            e.stopPropagation();
+            editDish(id);
+        }
     });
     // Глобальные функции для модалок
     window._closeModal = ui.closeModal;
