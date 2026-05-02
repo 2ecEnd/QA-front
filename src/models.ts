@@ -124,6 +124,16 @@ export interface DeleteEntityResponse {
   Count: number;
 }
 
+export interface DishShortInfoDto {
+  Id: string;
+  Name: string;
+}
+
+export interface DeleteProductResponse {
+  Acknowledge: boolean;
+  Dishes: DishShortInfoDto[] | null;
+}
+
 // ─── Макросы ───────────────────────────
 export const MacroMap: Record<string, DishCategory> = {
   '!десерт': DishCategory.DESSERT,

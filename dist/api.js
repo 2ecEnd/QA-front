@@ -11,18 +11,18 @@ async function request(method, path, body, isFormData = false) {
     }
     const resp = await fetch(url, options);
     if (!resp.ok) {
-        let errMsg = `Ошибка ${resp.status}`;
+        let errorData = {};
         try {
-            const err = await resp.json();
-            errMsg = err.message || err.error || JSON.stringify(err);
+            errorData = await resp.json();
         }
         catch { }
-        throw new Error(errMsg);
+        const message = errorData.message || `Ошибка ${resp.status}`;
+        const err = new Error(message);
+        err.status = resp.status;
+        err.data = errorData; // сохраняем всё тело ответа (там могут быть dishes)
+        throw err;
     }
     const text = await resp.text();
-    if (!text) {
-        throw new Error(`Пустой ответ от сервера (статус ${resp.status})`);
-    }
     return JSON.parse(text);
 }
 // ─── Products ───────────────────────────
@@ -51,7 +51,24 @@ export async function updateProduct(id, data) {
     return request('PATCH', `/products/${id}/update`, data);
 }
 export async function deleteProduct(id) {
-    return request('GET', `/products/${id}/delete`);
+    const url = API_BASE + `/products/${id}/delete`;
+    const resp = await fetch(url, { method: 'GET' });
+    const text = await resp.text();
+    const data = text ? JSON.parse(text) : null;
+    // Если успех (200) и Acknowledge === true – всё хорошо
+    if (resp.ok && data?.Acknowledge) {
+        return data;
+    }
+    // Если сервер вернул 409 Conflict с информацией о блюдах
+    if (resp.status === 409 && data) {
+        return data; // Acknowledge будет false, Dishes – перечень блюд
+    }
+    // Если ответ 200, но Acknowledge === false (на всякий случай)
+    if (resp.ok && data && !data.Acknowledge) {
+        return data;
+    }
+    // Все остальные ошибки
+    throw new Error(`Ошибка ${resp.status}: ${data ? JSON.stringify(data) : text}`);
 }
 // ─── Dishes ─────────────────────────────
 export async function fetchDishes(category, flags, search) {

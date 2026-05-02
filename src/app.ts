@@ -118,9 +118,17 @@ async function editProduct(id: string) {
 
 async function deleteProduct(id: string) {
   try {
-    await api.deleteProduct(id);
-    showToast('Продукт удалён');
-    await loadAndRenderProducts();
+    const result = await api.deleteProduct(id);
+    if (result.Acknowledge) {
+      showToast('Продукт удалён');
+      await loadAndRenderProducts();
+    } else {
+      const dishNames = result.Dishes?.map(d => d.Name).join(', ') || '';
+      showToast(
+        `Невозможно удалить продукт – он используется в блюдах: ${dishNames}`,
+        'error'
+      );
+    }
   } catch (e: any) {
     showToast(e.message, 'error');
   }
@@ -191,19 +199,19 @@ function buildAndOpenProductForm(existing?: ProductDto) {
         <div class="form-row">
           <div class="form-group">
             <label><span class="required">*</span> Калорийность (ккал / 100 г)</label>
-            <input type="number" class="form-input" name="CalorieContent" value="${existing?.CalorieContent ?? ''}" required min="0" step="0.1">
+            <input type="number" class="form-input" name="CalorieContent" value="${existing?.CalorieContent ?? ''}" required min="0" step="any">
           </div>
           <div class="form-group">
             <label><span class="required">*</span> Белки (г / 100 г, 0–100)</label>
-            <input type="number" class="form-input bju-input" name="Proteins" value="${existing?.Proteins ?? ''}" required min="0" max="100" step="0.1">
+            <input type="number" class="form-input bju-input" name="Proteins" value="${existing?.Proteins ?? ''}" required min="0" max="100" step="any">
           </div>
           <div class="form-group">
             <label><span class="required">*</span> Жиры (г / 100 г, 0–100)</label>
-            <input type="number" class="form-input bju-input" name="Fats" value="${existing?.Fats ?? ''}" required min="0" max="100" step="0.1">
+            <input type="number" class="form-input bju-input" name="Fats" value="${existing?.Fats ?? ''}" required min="0" max="100" step="any">
           </div>
           <div class="form-group">
             <label><span class="required">*</span> Углеводы (г / 100 г, 0–100)</label>
-            <input type="number" class="form-input bju-input" name="Carbohydrates" value="${existing?.Carbohydrates ?? ''}" required min="0" max="100" step="0.1">
+            <input type="number" class="form-input bju-input" name="Carbohydrates" value="${existing?.Carbohydrates ?? ''}" required min="0" max="100" step="any">
           </div>
         </div>
         <div class="form-group">
@@ -372,7 +380,7 @@ function buildAndOpenDishForm(existing?: DishDto) {
         <option value="">— Выберите продукт —</option>
         ${productOptions.replace(`value="${ing.ProductId}"`, `value="${ing.ProductId}" selected`)}
       </select>
-      <input type="number" class="comp-amount" value="${ing.Amount}" placeholder="г" required min="0.01" step="0.1">
+      <input type="number" class="comp-amount" value="${ing.Amount}" placeholder="г" required min="0.01" step="any">
       <button type="button" class="btn btn-danger btn-icon btn-sm comp-remove" title="Удалить">✕</button>
     </div>`).join('');
 
@@ -405,7 +413,7 @@ function buildAndOpenDishForm(existing?: DishDto) {
           <div id="compositionContainer">
             ${compositionRows || `<div class="composition-row" data-index="0">
               <select class="comp-product" required><option value="">— Выберите продукт —</option>${productOptions}</select>
-              <input type="number" class="comp-amount" placeholder="г" required min="0.01" step="0.1">
+              <input type="number" class="comp-amount" placeholder="г" required min="0.01" step="any">
               <button type="button" class="btn btn-danger btn-icon btn-sm comp-remove" title="Удалить">✕</button>
             </div>`}
           </div>
@@ -414,19 +422,19 @@ function buildAndOpenDishForm(existing?: DishDto) {
         <div class="form-row">
           <div class="form-group">
             <label>Калорийность (ккал / порция) <span class="form-hint">(авто-расчёт)</span></label>
-            <input type="number" class="form-input" name="CalorieContent" id="dishCalorieContent" value="${existing?.CalorieContent ?? ''}" required min="0" step="0.1">
+            <input type="number" class="form-input" name="CalorieContent" id="dishCalorieContent" value="${existing?.CalorieContent ?? ''}" required min="0" step="any">
           </div>
           <div class="form-group">
             <label>Белки (г / порция)</label>
-            <input type="number" class="form-input" name="Proteins" id="dishProteins" value="${existing?.Proteins ?? ''}" required min="0" max="100" step="0.1">
+            <input type="number" class="form-input" name="Proteins" id="dishProteins" value="${existing?.Proteins ?? ''}" required min="0" max="100" step="any">
           </div>
           <div class="form-group">
             <label>Жиры (г / порция)</label>
-            <input type="number" class="form-input" name="Fats" id="dishFats" value="${existing?.Fats ?? ''}" required min="0" max="100" step="0.1">
+            <input type="number" class="form-input" name="Fats" id="dishFats" value="${existing?.Fats ?? ''}" required min="0" max="100" step="any">
           </div>
           <div class="form-group">
             <label>Углеводы (г / порция)</label>
-            <input type="number" class="form-input" name="Carbohydrates" id="dishCarbohydrates" value="${existing?.Carbohydrates ?? ''}" required min="0" max="100" step="0.1">
+            <input type="number" class="form-input" name="Carbohydrates" id="dishCarbohydrates" value="${existing?.Carbohydrates ?? ''}" required min="0" max="100" step="any">
           </div>
         </div>
         <div class="form-group">
@@ -435,7 +443,7 @@ function buildAndOpenDishForm(existing?: DishDto) {
         <div class="form-row">
           <div class="form-group">
             <label><span class="required">*</span> Размер порции (г, > 0)</label>
-            <input type="number" class="form-input" name="Size" id="dishSize" value="${size || ''}" required min="0.01" step="0.1">
+            <input type="number" class="form-input" name="Size" id="dishSize" value="${size || ''}" required min="0.01" step="any">
           </div>
           <div class="form-group">
             <label><span class="required">*</span> Категория</label>
@@ -580,7 +588,7 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
         <option value="">— Выберите продукт —</option>
         ${productOptions}
       </select>
-      <input type="number" class="comp-amount" placeholder="г" required min="0.01" step="0.1">
+      <input type="number" class="comp-amount" placeholder="г" required min="0.01" step="any">
       <button type="button" class="btn btn-danger btn-icon btn-sm comp-remove" title="Удалить">✕</button>`;
     compContainer.appendChild(row);
   });

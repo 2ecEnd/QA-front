@@ -79,6 +79,7 @@ export function renderDishList(dishes: DishDto[], container: HTMLElement): void 
         return `<span class="card-flag ${cls}">${FlagLabels[f]}</span>`;
       }).join('');
 
+      console.log(d);
       
     return `
       <div class="card" data-id="${d.Id}" data-type="dish">
@@ -183,6 +184,25 @@ export function viewDishDetail(dish: DishDto): void {
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="window._closeModal()">Закрыть</button>
+    </div>`;
+  openModal(html);
+}
+
+/**
+ * Показывает простое информационное/предупреждающее модальное окно
+ */
+export function showAlertModal(title: string, message: string, type: 'warning' | 'info' = 'warning'): void {
+  const icon = type === 'warning' ? '⚠️' : 'ℹ️';
+  const html = `
+    <div class="modal-header">
+      <h3>${icon} ${escapeHtml(title)}</h3>
+      <button class="modal-close" type="button" onclick="window._closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="window._closeModal()">Понятно</button>
     </div>`;
   openModal(html);
 }
