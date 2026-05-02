@@ -24,6 +24,7 @@ import type {
 import * as api from './api.js';
 import * as ui from './ui.js';
 import { showToast, debounce, getElement, getAllElements, escapeHtml } from './utils.js';
+import { calculateNutrition } from './nutrition.js';
 
 // ═══════════════════════════════════════════
 // Глобальное состояние
@@ -508,28 +509,43 @@ function getCompositionData(): IngredientDto[] {
 /** Пересчёт КБЖУ блюда на основе состава */
 function recalculateDishKbju() {
   const rows = getAllElements<HTMLDivElement>('#compositionContainer .composition-row');
-  let totalCal = 0, totalProt = 0, totalFat = 0, totalCarb = 0;
-  rows.forEach(row => {
+  const ingredients: IngredientDto[] = [];
+  const productMap = new Map<string, ProductDto>();
+
+  // Собираем данные из DOM
+  for (const row of rows) {
     const select = row.querySelector<HTMLSelectElement>('.comp-product');
     const amountInput = row.querySelector<HTMLInputElement>('.comp-amount');
-    if (!select || !select.value || !amountInput) return;
-    const option = select.selectedOptions[0];
-    const amount = parseFloat(amountInput.value) || 0;
-    if (!option) return;
-    totalCal += (parseFloat(option.dataset.cal!) || 0) * amount / 100;
-    totalProt += (parseFloat(option.dataset.prot!) || 0) * amount / 100;
-    totalFat += (parseFloat(option.dataset.fat!) || 0) * amount / 100;
-    totalCarb += (parseFloat(option.dataset.carb!) || 0) * amount / 100;
-  });
+    if (!select || !select.value || !amountInput) continue;
 
+    const productId = select.value;
+    const amount = parseFloat(amountInput.value) || 0;
+    if (amount <= 0) continue;
+
+    // Находим продукт в уже загруженном массиве products
+    const product = products.find(p => p.Id === productId);
+    if (!product) continue;
+
+    ingredients.push({
+      ProductId: productId,
+      ProductName: product.Name,
+      Amount: amount,
+    });
+    productMap.set(productId, product);
+  }
+
+  // Чистый расчёт
+  const nutrition = calculateNutrition(ingredients, productMap);
+
+  // Заполняем поля формы
   const calInput = getElement<HTMLInputElement>('#dishCalorieContent');
   const protInput = getElement<HTMLInputElement>('#dishProteins');
   const fatInput = getElement<HTMLInputElement>('#dishFats');
   const carbInput = getElement<HTMLInputElement>('#dishCarbohydrates');
-  calInput.value = totalCal.toFixed(1);
-  protInput.value = totalProt.toFixed(1);
-  fatInput.value = totalFat.toFixed(1);
-  carbInput.value = totalCarb.toFixed(1);
+  calInput.value = nutrition.calorieContent.toFixed(1);
+  protInput.value = nutrition.proteins.toFixed(1);
+  fatInput.value = nutrition.fats.toFixed(1);
+  carbInput.value = nutrition.carbohydrates.toFixed(1);
 
   updateDishFlagAvailability();
   validateDishBju();

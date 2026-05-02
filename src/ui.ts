@@ -78,8 +78,6 @@ export function renderDishList(dishes: DishDto[], container: HTMLElement): void 
         const cls = f === 'VEGAN' ? 'vegan' : f === 'GLUTEN_FREE' ? 'gluten' : 'sugar';
         return `<span class="card-flag ${cls}">${FlagLabels[f]}</span>`;
       }).join('');
-
-      console.log(d);
       
     return `
       <div class="card" data-id="${d.Id}" data-type="dish">
