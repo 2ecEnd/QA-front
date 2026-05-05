@@ -14,7 +14,7 @@ import {
 import { escapeHtml, formatDate } from './utils.js';
 import * as api from './api.js';
 
-// ─── Рендер списка продуктов ─────────────────
+// -=-=-=-=-=-=-=-=-=- Рендер списка продуктов -=-=-=-=-=-=-=-=-=-
 export function renderProductList(products: ProductDto[], container: HTMLElement): void {
   if (products.length === 0) {
     container.innerHTML = '<div class="no-results">📭 Продукты не найдены.</div>';
@@ -58,7 +58,7 @@ export function renderProductList(products: ProductDto[], container: HTMLElement
   }).join('');
 }
 
-// ─── Рендер списка блюд ──────────────────────
+// -=-=-=-=-=-=-=-=-=- Рендер списка блюд -=-=-=-=-=-=-=-=-=-
 export function renderDishList(dishes: DishDto[], container: HTMLElement): void {
   if (dishes.length === 0) {
     container.innerHTML = '<div class="no-results">🍽️ Блюда не найдены.</div>';
@@ -103,7 +103,7 @@ export function renderDishList(dishes: DishDto[], container: HTMLElement): void 
   }).join('');
 }
 
-// ─── Модальные окна ──────────────────────────
+// -=-=-=-=-=-=-=-=-=- Модальные окна -=-=-=-=-=-=-=-=-=-
 export function openModal(html: string): void {
   const overlay = document.getElementById('modalOverlay')!;
   const content = document.getElementById('modalContent')!;
@@ -119,7 +119,7 @@ export function closeModal(): void {
   document.body.style.overflow = '';
 }
 
-// ─── Детальные просмотры ─────────────────────
+// -=-=-=-=-=-=-=-=-=- Детальные просмотры -=-=-=-=-=-=-=-=-=-
 export function viewProductDetail(product: ProductDto): void {
   const flags = product.Flags.map(f => FlagLabels[f]).join(', ') || '—';
   const photos = product.Photos.map(url => `<img src="${escapeHtml(url)}" style="max-width:100%;border-radius:8px;margin:4px 0;" onerror="this.style.display='none'">`).join('');
@@ -156,7 +156,6 @@ export function viewDishDetail(dish: DishDto): void {
   const compHtml = dish.Composition.map(ing =>
     `<div class="detail-item"><span class="detail-label">Продукт</span><div class="detail-value">${escapeHtml(ing.ProductName)} — ${ing.Amount?.toFixed(1)} г</div></div>`
   ).join('');
-  const bjuPer100 = dish.Size > 0 ? ((dish.Proteins + dish.Fats + dish.Carbohydrates) / dish.Size) * 100 : 0;
 
   const html = `
     <div class="modal-header">
@@ -171,7 +170,6 @@ export function viewDishDetail(dish: DishDto): void {
         <div class="detail-item"><span class="detail-label">Белки</span><div class="detail-value">${dish.Proteins?.toFixed(1)} г / порция</div></div>
         <div class="detail-item"><span class="detail-label">Жиры</span><div class="detail-value">${dish.Fats?.toFixed(1)} г / порция</div></div>
         <div class="detail-item"><span class="detail-label">Углеводы</span><div class="detail-value">${dish.Carbohydrates?.toFixed(1)} г / порция</div></div>
-        <div class="detail-item"><span class="detail-label">БЖУ на 100 г</span><div class="detail-value">${bjuPer100.toFixed(1)} г</div></div>
         <div class="detail-item"><span class="detail-label">Категория</span><div class="detail-value">${DishCategoryLabels[dish.Category]}</div></div>
         <div class="detail-item"><span class="detail-label">Флаги</span><div class="detail-value">${flags}</div></div>
         <div class="detail-item"><span class="detail-label">Создан</span><div class="detail-value">${formatDate(dish.CreationDate)}</div></div>
@@ -186,9 +184,7 @@ export function viewDishDetail(dish: DishDto): void {
   openModal(html);
 }
 
-/**
- * Показывает простое информационное/предупреждающее модальное окно
- */
+// -=-=-=-=-=-=-=-=-=-Показывает простое информационное/предупреждающее модальное окно -=-=-=-=-=-=-=-=-=-
 export function showAlertModal(title: string, message: string, type: 'warning' | 'info' = 'warning'): void {
   const icon = type === 'warning' ? '⚠️' : 'ℹ️';
   const html = `

@@ -1,11 +1,3 @@
-/**
- * Рассчитывает КБЖУ на порцию на основе состава и данных продуктов.
- * Формула: ∑ (показатель_на_100г × количество_в_граммах / 100)
- * @param ingredients - список ингредиентов
- * @param productMap - Map productId → ProductDto
- * @returns Nutrition – рассчитанные суммарные значения
- * @throws Error если количество <= 0
- */
 export function calculateNutrition(ingredients, productMap) {
     let calorieContent = 0;
     let proteins = 0;

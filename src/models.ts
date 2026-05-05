@@ -42,7 +42,7 @@ export enum SortField {
   CARBOHYDRATES = 'CARBOHYDRATES',
 }
 
-// ─── DTO типы (ответы от сервера) ──────
+// ─── DTO ──────
 export interface ProductDto {
   Id: string;               // UUID
   Name: string;

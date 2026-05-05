@@ -36,7 +36,7 @@ async function request<T>(method: string, path: string, body?: unknown, isFormDa
     const message = errorData.message || `Ошибка ${resp.status}`;
     const err: any = new Error(message);
     err.status = resp.status;
-    err.data = errorData;   // сохраняем всё тело ответа (там могут быть dishes)
+    err.data = errorData;
     throw err;
   }
   const text = await resp.text();

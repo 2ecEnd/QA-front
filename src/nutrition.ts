@@ -7,14 +7,6 @@ export interface Nutrition {
   carbohydrates: number;
 }
 
-/**
- * Рассчитывает КБЖУ на порцию на основе состава и данных продуктов.
- * Формула: ∑ (показатель_на_100г × количество_в_граммах / 100)
- * @param ingredients - список ингредиентов
- * @param productMap - Map productId → ProductDto
- * @returns Nutrition – рассчитанные суммарные значения
- * @throws Error если количество <= 0
- */
 export function calculateNutrition(
   ingredients: IngredientDto[],
   productMap: Map<string, ProductDto>
@@ -28,8 +20,10 @@ export function calculateNutrition(
     if (ing.Amount <= 0) {
       throw new Error(`Amount must be > 0 for product ${ing.ProductId}`);
     }
+
     const product = productMap.get(ing.ProductId);
     if (!product) continue;
+    
     const factor = ing.Amount / 100;
     calorieContent += product.CalorieContent * factor;
     proteins += product.Proteins * factor;

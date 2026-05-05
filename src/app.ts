@@ -297,7 +297,7 @@ function attachProductFormHandlers(isEdit: boolean, existingId: string | undefin
         const fileIndex = index - existingPhotos.length;
         selectedFiles.splice(fileIndex, 1);
       }
-      updatePhotoPreview(); // Перерисовать
+      updatePhotoPreview();
     });
   }
 
@@ -326,7 +326,7 @@ function attachProductFormHandlers(isEdit: boolean, existingId: string | undefin
     }
     const toAdd = files.slice(0, remaining);
     selectedFiles.push(...toAdd);
-    photoInput.value = ''; // сбрасываем input, чтобы можно было выбрать тот же файл повторно
+    photoInput.value = '';
     updatePhotoPreview();
   });
 
@@ -568,7 +568,6 @@ function recalculateDishKbju() {
     productMap.set(productId, product);
   }
 
-  // Чистый расчёт
   const nutrition = calculateNutrition(ingredients, productMap);
 
   // Заполняем поля формы
@@ -657,11 +656,6 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
     }
   });
 
-  // Валидация при ручном изменении БЖУ
-  ['dishCalorieContent', 'dishProteins', 'dishFats', 'dishCarbohydrates'].forEach(id => {
-    const el = document.getElementById(id);
-  });
-
   // Макросы в названии
   let categoryExplicitlySet = false;
   categorySelect.addEventListener('change', () => { categoryExplicitlySet = true; });
@@ -680,7 +674,7 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
     }
   });
 
-  /** Обновление превью фотографий блюда */
+  // Обновление превью фотографий блюда
   function updateDishPhotoPreview() {
     const allPhotos: string[] = [
       ...existingPhotos,
@@ -790,7 +784,7 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
       showToast(e.message, 'error');
     }
   });
-  // Если блюдо редактируется или в форме уже есть состав – сразу пересчитываем КБЖУ
+  
   if (isEdit || getCompositionData().length > 0) {
     recalculateDishKbju();
   }
@@ -911,11 +905,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Делегирование кликов на карточках и кнопках в них
   getElement('#productList').addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
-    // Кнопки действий (можно добавить, если вернуть кнопки в разметку ui.ts)
     const card = target.closest<HTMLElement>('.card[data-type="product"]');
     if (!card) return;
+
     const id = card.dataset.id!;
-    if (target.closest('.btn')) return; // если кнопка — не реагируем, пусть будет через window
+    if (target.closest('.btn')) return;
+
     viewProduct(id);
   });
 
@@ -924,9 +919,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const target = e.target as HTMLElement;
     const card = target.closest<HTMLElement>('.card[data-type="product"]');
     if (!card) return;
+
     const id = card.dataset.id!;
     if (target.closest('.btn-delete')) {
-      e.stopPropagation(); // чтобы не сработал просмотр
+      e.stopPropagation();
       if (confirm(`Удалить продукт?`)) {
         deleteProduct(id);
       }
@@ -934,7 +930,6 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       editProduct(id);
     }
-    // иначе клик мимо кнопок — просмотр уже обрабатывается в существующем блоке
   });
 
   getElement('#dishList').addEventListener('click', (e) => {
