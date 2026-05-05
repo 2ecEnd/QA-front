@@ -24,7 +24,7 @@ import type {
 import * as api from './api.js';
 import * as ui from './ui.js';
 import { showToast, debounce, getElement, getAllElements, escapeHtml } from './utils.js';
-import { calculateNutrition } from './nutrition.js';
+import { calculateCpfc } from './nutrition.js';
 
 
 // -=-=-=-=-=-=-=-=-=-=- Глобальное состояние -=-=-=-=-=-=-=-=-=-=-
@@ -568,7 +568,7 @@ function recalculateDishKbju() {
     productMap.set(productId, product);
   }
 
-  const nutrition = calculateNutrition(ingredients, productMap);
+  const nutrition = calculateCpfc(ingredients, productMap);
 
   // Заполняем поля формы
   const calInput = getElement<HTMLInputElement>('#dishCalorieContent');

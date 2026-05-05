@@ -7,7 +7,7 @@ export interface Nutrition {
   carbohydrates: number;
 }
 
-export function calculateNutrition(
+export function calculateCpfc(
   ingredients: IngredientDto[],
   productMap: Map<string, ProductDto>
 ): Nutrition {
@@ -23,7 +23,7 @@ export function calculateNutrition(
 
     const product = productMap.get(ing.ProductId);
     if (!product) continue;
-    
+
     const factor = ing.Amount / 100;
     calorieContent += product.CalorieContent * factor;
     proteins += product.Proteins * factor;
