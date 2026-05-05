@@ -12,6 +12,6 @@
     "sourceMap": true,
     "types": ["jest"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/tests/nutrition.test.ts"],
   "exclude": ["node_modules"]
 }
