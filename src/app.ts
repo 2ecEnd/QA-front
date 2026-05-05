@@ -26,9 +26,8 @@ import * as ui from './ui.js';
 import { showToast, debounce, getElement, getAllElements, escapeHtml } from './utils.js';
 import { calculateNutrition } from './nutrition.js';
 
-// ═══════════════════════════════════════════
-// Глобальное состояние
-// ═══════════════════════════════════════════
+
+// -=-=-=-=-=-=-=-=-=-=- Глобальное состояние -=-=-=-=-=-=-=-=-=-=-
 let products: ProductDto[] = [];
 let dishes: DishDto[] = [];
 
@@ -46,11 +45,10 @@ const dishFilters = {
   flags: [] as Flag[],
 };
 
-// ═══════════════════════════════════════════
-// Вспомогательные функции
-// ═══════════════════════════════════════════
 
-/** Загрузка продуктов с текущими фильтрами и рендер */
+// -=-=-=-=-=-=-=-=-=-=- Вспомогательные функции -=-=-=-=-=-=-=-=-=-=-
+
+// Загрузка продуктов с текущими фильтрами и рендер
 async function loadAndRenderProducts() {
   try {
     products = await api.fetchProducts(
@@ -66,7 +64,7 @@ async function loadAndRenderProducts() {
   }
 }
 
-/** Загрузка блюд с текущими фильтрами и рендер */
+// Загрузка блюд с текущими фильтрами и рендер
 async function loadAndRenderDishes() {
   try {
     dishes = await api.fetchDishes(
@@ -80,7 +78,7 @@ async function loadAndRenderDishes() {
   }
 }
 
-/** Загрузка нескольких изображений (до лимита в 5) */
+// Загрузка нескольких изображений (до лимита в 5)
 async function uploadMultipleImages(files: File[], existingUrls: string[] = []): Promise<string[]> {
   const urls = [...existingUrls];
   for (const file of files) {
@@ -95,9 +93,26 @@ async function uploadMultipleImages(files: File[], existingUrls: string[] = []):
   return urls;
 }
 
-// ═══════════════════════════════════════════
-// Действия с продуктами и блюдами
-// ═══════════════════════════════════════════
+function renderPhotoPreviews(container: HTMLElement, photos: string[], onRemove: (index: number) => void) {
+  container.innerHTML = photos.map((url, index) => `
+    <div class="photo-preview-wrapper" style="position: relative; display: inline-block;">
+      <img src="${escapeHtml(url)}" class="photo-preview-item" alt="preview" onerror="this.style.display='none'">
+      <button type="button" class="photo-remove-btn" data-index="${index}" 
+              style="position: absolute; top: -8px; right: -8px; background: #c0392b; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 14px; line-height: 1;">✕</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.photo-remove-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt((btn as HTMLElement).dataset.index!);
+      onRemove(idx);
+    });
+  });
+}
+
+
+// -=-=-=-=-=-=-=-=-=-=- Действия с продуктами и блюдами -=-=-=-=-=-=-=-=-=-=-
 
 async function viewProduct(id: string) {
   try {
@@ -164,9 +179,7 @@ async function deleteDish(id: string) {
   }
 }
 
-// ═══════════════════════════════════════════
-// Форма продукта
-// ═══════════════════════════════════════════
+// -=-=-=-=-=-=-=-=-=-=- Форма продукта -=-=-=-=-=-=-=-=-=-=-
 
 function buildAndOpenProductForm(existing?: ProductDto) {
   const isEdit = !!existing;
@@ -192,9 +205,7 @@ function buildAndOpenProductForm(existing?: ProductDto) {
             <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('productPhotoInput').click()">📷 Выбрать фото</button>
             <span class="form-hint" id="photoCount">${photos.length}/5</span>
           </div>
-          <div class="photo-previews" id="photoPreviews">
-            ${photos.map(url => `<img src="${escapeHtml(url)}" class="photo-preview-item" alt="preview" onerror="this.style.display='none'">`).join('')}
-          </div>
+          <div class="photo-previews" id="photoPreviews"></div>
           <input type="hidden" id="existingPhotos" value='${JSON.stringify(photos)}'>
         </div>
         <div class="form-row">
@@ -268,42 +279,32 @@ function attachProductFormHandlers(isEdit: boolean, existingId: string | undefin
   // Накопительный список выбранных (но ещё не загруженных) файлов
   let selectedFiles: File[] = [];
 
-  // Обновление превью и счётчика
+  /** Обновляет превью и счётчик, использует renderPhotoPreviews */
   function updatePhotoPreview() {
-    const total = existingPhotos.length + selectedFiles.length;
+    const allPhotos: string[] = [
+      ...existingPhotos,
+      ...selectedFiles.map(file => URL.createObjectURL(file))
+    ];
+    const total = allPhotos.length;
     countEl.textContent = `${total}/5`;
 
-    // Перерисовываем превью полностью
-    previewsContainer.innerHTML = '';
-
-    // Отображаем уже существующие фото (их URL без кнопок удаления)
-    existingPhotos.forEach(url => {
-      const img = document.createElement('img');
-      img.src = url;
-      img.className = 'photo-preview-item';
-      img.title = 'Существующее фото';
-      img.onerror = () => { img.style.display = 'none'; };
-      previewsContainer.appendChild(img);
-    });
-
-    // Отображаем выбранные (локальные) файлы с временными data URL
-    selectedFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.createElement('img');
-        img.src = e.target?.result as string;
-        img.className = 'photo-preview-item';
-        img.title = file.name;
-        previewsContainer.appendChild(img);
-      };
-      reader.readAsDataURL(file);
+    renderPhotoPreviews(previewsContainer, allPhotos, (index: number) => {
+      if (index < existingPhotos.length) {
+        // Удаляем существующую фотографию (URL)
+        existingPhotos.splice(index, 1);
+      } else {
+        // Удаляем локальный файл
+        const fileIndex = index - existingPhotos.length;
+        selectedFiles.splice(fileIndex, 1);
+      }
+      updatePhotoPreview(); // Перерисовать
     });
   }
 
   // Первоначальное отображение
   updatePhotoPreview();
 
-  // Валидация БЖУ (без изменений)
+  // Валидация БЖУ
   const bjuInputs = form.querySelectorAll<HTMLInputElement>('.bju-input');
   bjuInputs.forEach(input => {
     input.addEventListener('input', () => {
@@ -391,9 +392,8 @@ function attachProductFormHandlers(isEdit: boolean, existingId: string | undefin
   });
 }
 
-// ═══════════════════════════════════════════
-// Форма блюда
-// ═══════════════════════════════════════════
+
+// -=-=-=-=-=-=-=-=-=-=- Форма блюда -=-=-=-=-=-=-=-=-=-=-
 
 function buildAndOpenDishForm(existing?: DishDto) {
   const isEdit = !!existing;
@@ -512,7 +512,7 @@ function buildAndOpenDishForm(existing?: DishDto) {
   attachDishFormHandlers(isEdit, existing?.Id, photos);
 }
 
-/** Проверка возможности установки флага блюда на основе состава */
+// Проверка возможности установки флага блюда на основе состава
 function checkDishFlagAvailability(flag: Flag, composition: IngredientDto[]): boolean {
   if (!composition.length) return false;
   return composition.every(ing => {
@@ -521,7 +521,7 @@ function checkDishFlagAvailability(flag: Flag, composition: IngredientDto[]): bo
   });
 }
 
-/** Получение текущего состава из DOM */
+// Получение текущего состава из DOM
 function getCompositionData(): IngredientDto[] {
   const rows = getAllElements<HTMLDivElement>('#compositionContainer .composition-row');
   const composition: IngredientDto[] = [];
@@ -540,7 +540,7 @@ function getCompositionData(): IngredientDto[] {
   return composition;
 }
 
-/** Пересчёт КБЖУ блюда на основе состава */
+// Пересчёт КБЖУ блюда на основе состава
 function recalculateDishKbju() {
   const rows = getAllElements<HTMLDivElement>('#compositionContainer .composition-row');
   const ingredients: IngredientDto[] = [];
@@ -584,7 +584,7 @@ function recalculateDishKbju() {
   updateDishFlagAvailability();
 }
 
-/** Обновление доступности флагов блюда в зависимости от состава */
+// Обновление доступности флагов блюда в зависимости от состава
 function updateDishFlagAvailability() {
   const composition = getCompositionData();
   Object.values(Flag).forEach(f => {
@@ -611,6 +611,10 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
   const nameInput = getElement<HTMLInputElement>('#dishNameInput');
   const categorySelect = getElement<HTMLSelectElement>('#dishCategorySelect');
   const macroHint = getElement('#macroHint');
+  const previewsContainer = getElement('#dishPhotoPreviews');
+  const countEl = getElement('#dishPhotoCount');
+
+  let selectedFiles: File[] = [];
 
   // Добавление строки состава
   btnAddRow.addEventListener('click', () => {
@@ -624,7 +628,7 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
         <option value="">— Выберите продукт —</option>
         ${productOptions}
       </select>
-      <input type="number" class="comp-amount" placeholder="г" required min="0.01" step="any">
+      <input type="number" class="comp-amount" placeholder="г" required min="0.01" step="0.01">
       <button type="button" class="btn btn-danger btn-icon btn-sm comp-remove" title="Удалить">✕</button>`;
     compContainer.appendChild(row);
   });
@@ -676,27 +680,43 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
     }
   });
 
-  // Фотографии
+  /** Обновление превью фотографий блюда */
+  function updateDishPhotoPreview() {
+    const allPhotos: string[] = [
+      ...existingPhotos,
+      ...selectedFiles.map(file => URL.createObjectURL(file))
+    ];
+    countEl.textContent = `${allPhotos.length}/5`;
+    renderPhotoPreviews(previewsContainer, allPhotos, (index: number) => {
+      if (index < existingPhotos.length) {
+        existingPhotos.splice(index, 1);
+      } else {
+        const fileIndex = index - existingPhotos.length;
+        selectedFiles.splice(fileIndex, 1);
+      }
+      updateDishPhotoPreview();
+    });
+  }
+
+  // Первичное отображение
+  updateDishPhotoPreview();
+
+  // Обработчик выбора файлов
   photoInput.addEventListener('change', () => {
-    const previews = getElement('#dishPhotoPreviews');
-    const countEl = getElement('#dishPhotoCount');
-    const totalFiles = existingPhotos.length + (photoInput.files?.length ?? 0);
-    countEl.textContent = Math.min(totalFiles, 5) + '/5';
-    if (photoInput.files) {
-      Array.from(photoInput.files).slice(0, 5 - existingPhotos.length).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = document.createElement('img');
-          img.src = e.target?.result as string;
-          img.className = 'photo-preview-item';
-          previews.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      });
+    const files = Array.from(photoInput.files || []);
+    const remaining = 5 - existingPhotos.length - selectedFiles.length;
+    if (remaining <= 0) {
+      showToast('Максимум 5 фотографий', 'warning');
+      photoInput.value = '';
+      return;
     }
+    const toAdd = files.slice(0, remaining);
+    selectedFiles.push(...toAdd);
+    photoInput.value = '';
+    updateDishPhotoPreview();
   });
 
-  // Отправка формы
+ // Отправка формы
   const submitBtn = getElement('#btnSubmitDish');
   submitBtn.addEventListener('click', async () => {
     if (!form.checkValidity()) {
@@ -717,23 +737,27 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
       if (cb && cb.checked) selectedFlags.push(f);
     });
 
-    // Фотографии
+    // Фотографии: теперь используем selectedFiles, а не photoInput.files
     let photos = existingPhotos;
-    if (photoInput.files && photoInput.files.length > 0) {
-      photos = await uploadMultipleImages(Array.from(photoInput.files), existingPhotos);
+    if (selectedFiles.length > 0) {
+      const uploadedUrls = await uploadMultipleImages(selectedFiles);
+      photos = [...existingPhotos, ...uploadedUrls];
     }
 
-    // Итоговая категория с учётом макроса
-    const finalCategory = formData.get('Category') as DishCategory;
-    let finalName = formData.get('Name') as string;
+    // Всегда удаляем все макросы из названия
+    let finalName = (formData.get('Name') as string).trim();
+    finalName = finalName.replace(new RegExp(MacroRegex.source, 'g'), '').trim().replace(/\s+/g, ' ');
+
+    // Определяем категорию: если пользователь не трогал select – берём из первого макроса
+    let finalCategory = formData.get('Category') as DishCategory;
     if (!categoryExplicitlySet) {
-      const match = finalName.match(MacroRegex);
+      const originalName = formData.get('Name') as string;
+      const match = originalName.match(MacroRegex);
       if (match) {
         const macroKey = match[0].toLowerCase();
         const cat = MacroMap[macroKey];
         if (cat) {
-          finalName = finalName.replace(new RegExp(MacroRegex.source, 'g'), '').trim().replace(/\s+/g, ' ');
-          formData.set('Category', cat);
+          finalCategory = cat;
         }
       }
     }
@@ -747,7 +771,7 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
       Carbohydrates: parseFloat(formData.get('Carbohydrates') as string),
       Composition: composition,
       Size: parseFloat(formData.get('Size') as string),
-      Category: formData.get('Category') as DishCategory,
+      Category: finalCategory,
       Flags: selectedFlags.length ? selectedFlags : null,
     };
 
@@ -766,16 +790,14 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
       showToast(e.message, 'error');
     }
   });
-
   // Если блюдо редактируется или в форме уже есть состав – сразу пересчитываем КБЖУ
   if (isEdit || getCompositionData().length > 0) {
     recalculateDishKbju();
   }
 }
 
-// ═══════════════════════════════════════════
-// Инициализация приложения
-// ═══════════════════════════════════════════
+
+// -=-=-=-=-=-=-=-=-=-=- Инициализация приложения -=-=-=-=-=-=-=-=-=-=-
 
 function initFilters() {
   // Категории продуктов
