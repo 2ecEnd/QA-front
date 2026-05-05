@@ -137,7 +137,7 @@ export function viewProductDetail(product: ProductDto): void {
         <div class="detail-item"><span class="detail-label">Жиры</span><div class="detail-value">${product.Fats?.toFixed(1)} г</div></div>
         <div class="detail-item"><span class="detail-label">Углеводы</span><div class="detail-value">${product.Carbohydrates?.toFixed(1)} г</div></div>
         <div class="detail-item"><span class="detail-label">Категория</span><div class="detail-value">${ProductCategoryLabels[product.Category]}</div></div>
-        <div class="detail-item"><span class="detail-label">Готовность</span><div class="detail-value">${CookingNecessityLabels[product.ReadinessDegree]}</div></div>
+        <div class="detail-item"><span class="detail-label">Готовность</span><div class="detail-value">${CookingNecessityLabels[product.CookingNecessity]}</div></div>
         <div class="detail-item detail-full"><span class="detail-label">Состав</span><div class="detail-value">${escapeHtml(product.Composition || '—')}</div></div>
         <div class="detail-item"><span class="detail-label">Флаги</span><div class="detail-value">${flags}</div></div>
         <div class="detail-item"><span class="detail-label">Создан</span><div class="detail-value">${formatDate(product.CreationDate)}</div></div>

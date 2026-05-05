@@ -193,7 +193,7 @@ function buildAndOpenProductForm(existing) {
           <div class="form-group">
             <label><span class="required">*</span> Необходимость готовки</label>
             <select class="form-input" name="CookingNecessity" required>
-              ${Object.values(CookingNecessity).map(cn => `<option value="${cn}" ${existing?.ReadinessDegree === cn ? 'selected' : ''}>${CookingNecessityLabels[cn]}</option>`).join('')}
+              ${Object.values(CookingNecessity).map(cn => `<option value="${cn}" ${existing?.CookingNecessity === cn ? 'selected' : ''}>${CookingNecessityLabels[cn]}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -219,7 +219,42 @@ function buildAndOpenProductForm(existing) {
 function attachProductFormHandlers(isEdit, existingId, existingPhotos) {
     const form = getElement('#productForm');
     const bjuError = getElement('#bjuError');
-    // Валидация БЖУ
+    const previewsContainer = getElement('#photoPreviews');
+    const countEl = getElement('#photoCount');
+    const photoInput = getElement('#productPhotoInput');
+    // Накопительный список выбранных (но ещё не загруженных) файлов
+    let selectedFiles = [];
+    // Обновление превью и счётчика
+    function updatePhotoPreview() {
+        const total = existingPhotos.length + selectedFiles.length;
+        countEl.textContent = `${total}/5`;
+        // Перерисовываем превью полностью
+        previewsContainer.innerHTML = '';
+        // Отображаем уже существующие фото (их URL без кнопок удаления)
+        existingPhotos.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'photo-preview-item';
+            img.title = 'Существующее фото';
+            img.onerror = () => { img.style.display = 'none'; };
+            previewsContainer.appendChild(img);
+        });
+        // Отображаем выбранные (локальные) файлы с временными data URL
+        selectedFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target?.result;
+                img.className = 'photo-preview-item';
+                img.title = file.name;
+                previewsContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    // Первоначальное отображение
+    updatePhotoPreview();
+    // Валидация БЖУ (без изменений)
     const bjuInputs = form.querySelectorAll('.bju-input');
     bjuInputs.forEach(input => {
         input.addEventListener('input', () => {
@@ -229,25 +264,19 @@ function attachProductFormHandlers(isEdit, existingId, existingPhotos) {
             bjuError.style.display = (prot + fat + carb > 100) ? 'block' : 'none';
         });
     });
-    // Предпросмотр фотографий
-    const photoInput = getElement('#productPhotoInput');
+    // Обработчик выбора файлов
     photoInput.addEventListener('change', () => {
-        const previews = getElement('#photoPreviews');
-        const countEl = getElement('#photoCount');
-        const totalFiles = existingPhotos.length + (photoInput.files?.length ?? 0);
-        countEl.textContent = Math.min(totalFiles, 5) + '/5';
-        if (photoInput.files) {
-            Array.from(photoInput.files).slice(0, 5 - existingPhotos.length).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.createElement('img');
-                    img.src = e.target?.result;
-                    img.className = 'photo-preview-item';
-                    previews.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            });
+        const files = Array.from(photoInput.files || []);
+        const remaining = 5 - existingPhotos.length - selectedFiles.length;
+        if (remaining <= 0) {
+            showToast('Максимум 5 фотографий', 'warning');
+            photoInput.value = '';
+            return;
         }
+        const toAdd = files.slice(0, remaining);
+        selectedFiles.push(...toAdd);
+        photoInput.value = ''; // сбрасываем input, чтобы можно было выбрать тот же файл повторно
+        updatePhotoPreview();
     });
     // Отправка формы
     const submitBtn = getElement('#btnSubmitProduct');
@@ -269,10 +298,11 @@ function attachProductFormHandlers(isEdit, existingId, existingPhotos) {
             if (formData.get(`Flag_${f}`))
                 selectedFlags.push(f);
         });
-        // Загрузка новых фото
+        // Загружаем накопленные локальные файлы
         let photos = existingPhotos;
-        if (photoInput.files && photoInput.files.length > 0) {
-            photos = await uploadMultipleImages(Array.from(photoInput.files), existingPhotos);
+        if (selectedFiles.length > 0) {
+            const uploadedUrls = await uploadMultipleImages(selectedFiles);
+            photos = [...existingPhotos, ...uploadedUrls];
         }
         const payload = {
             Name: formData.get('Name'),
@@ -288,12 +318,10 @@ function attachProductFormHandlers(isEdit, existingId, existingPhotos) {
         };
         try {
             if (isEdit && existingId) {
-                // Для изменения используется ReadinessDegree вместо CookingNecessity
                 const changeReq = {
                     ...payload,
-                    ReadinessDegree: payload.CookingNecessity,
+                    CookingNecessity: payload.CookingNecessity,
                 };
-                delete changeReq.CookingNecessity;
                 await api.updateProduct(existingId, changeReq);
                 showToast('Продукт обновлён');
             }
@@ -487,7 +515,6 @@ function recalculateDishKbju() {
     fatInput.value = nutrition.fats.toFixed(1);
     carbInput.value = nutrition.carbohydrates.toFixed(1);
     updateDishFlagAvailability();
-    validateDishBju();
 }
 /** Обновление доступности флагов блюда в зависимости от состава */
 function updateDishFlagAvailability() {
@@ -506,18 +533,6 @@ function updateDishFlagAvailability() {
             checkbox.checked = false;
         }
     });
-}
-/** Валидация БЖУ на 100 г блюда */
-function validateDishBju() {
-    const size = parseFloat(getElement('#dishSize').value) || 1;
-    const prot = parseFloat(getElement('#dishProteins').value) || 0;
-    const fat = parseFloat(getElement('#dishFats').value) || 0;
-    const carb = parseFloat(getElement('#dishCarbohydrates').value) || 0;
-    const errorEl = getElement('#dishBjuError');
-    const bjuPer100 = ((prot + fat + carb) / size) * 100;
-    const valid = bjuPer100 <= 100;
-    errorEl.style.display = valid ? 'none' : 'block';
-    return valid;
 }
 function attachDishFormHandlers(isEdit, existingId, existingPhotos) {
     const form = getElement('#dishForm');
@@ -564,15 +579,12 @@ function attachDishFormHandlers(isEdit, existingId, existingPhotos) {
             recalculateDishKbju();
         }
     });
-    dishSize.addEventListener('input', () => validateDishBju());
     // Валидация при ручном изменении БЖУ
     ['dishCalorieContent', 'dishProteins', 'dishFats', 'dishCarbohydrates'].forEach(id => {
         const el = document.getElementById(id);
-        if (el)
-            el.addEventListener('input', () => validateDishBju());
     });
     // Макросы в названии
-    let categoryExplicitlySet = isEdit;
+    let categoryExplicitlySet = false;
     categorySelect.addEventListener('change', () => { categoryExplicitlySet = true; });
     nameInput.addEventListener('input', () => {
         const match = nameInput.value.match(MacroRegex);
@@ -615,8 +627,6 @@ function attachDishFormHandlers(isEdit, existingId, existingPhotos) {
             form.reportValidity();
             return;
         }
-        if (!validateDishBju())
-            return;
         const formData = new FormData(form);
         const composition = getCompositionData();
         if (composition.length < 1) {
@@ -643,9 +653,7 @@ function attachDishFormHandlers(isEdit, existingId, existingPhotos) {
                 const macroKey = match[0].toLowerCase();
                 const cat = MacroMap[macroKey];
                 if (cat) {
-                    // Удаляем макрос из названия
-                    finalName = finalName.replace(MacroRegex, '').trim().replace(/\s+/g, ' ');
-                    // Категория уже установлена макросом, если не переопределяли
+                    finalName = finalName.replace(new RegExp(MacroRegex.source, 'g'), '').trim().replace(/\s+/g, ' ');
                     formData.set('Category', cat);
                 }
             }

@@ -53,7 +53,7 @@ export interface ProductDto {
   Carbohydrates: number;
   Composition: string | null;
   Category: ProductCategory;
-  ReadinessDegree: CookingNecessity;  // именно так в ответе
+  CookingNecessity: CookingNecessity;
   Flags: Flag[];
   CreationDate: string;
   EditDate: string | null;
@@ -96,7 +96,7 @@ export interface CreateProductRequest {
 }
 
 export interface ChangeProductRequest extends Partial<CreateProductRequest> {
-  ReadinessDegree?: CookingNecessity; // для PATCH
+  CookingNecessity?: CookingNecessity; // для PATCH
 }
 
 export interface CreateDishRequest {
