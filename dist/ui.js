@@ -68,7 +68,7 @@ export function renderDishList(dishes, container) {
           <span>Б: ${d.Proteins?.toFixed(1) ?? '—'}</span>
           <span>Ж: ${d.Fats?.toFixed(1) ?? '—'}</span>
           <span>У: ${d.Carbohydrates?.toFixed(1) ?? '—'}</span>
-          <span>⚖️ ${d.Size?.toFixed(0) ?? '—'} г</span>
+          <span>⚖️ ${d.Size?.toFixed(1) ?? '—'} г</span>
         </div>
         ${flagsHtml ? `<div class="card-flags">${flagsHtml}</div>` : ''}
         <!-- НОВЫЙ БЛОК -->

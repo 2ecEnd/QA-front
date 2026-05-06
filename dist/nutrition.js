@@ -1,4 +1,4 @@
-export function calculateNutrition(ingredients, productMap) {
+export function calculateCpfc(ingredients, productMap) {
     let calorieContent = 0;
     let proteins = 0;
     let fats = 0;
@@ -16,6 +16,10 @@ export function calculateNutrition(ingredients, productMap) {
         fats += product.Fats * factor;
         carbohydrates += product.Carbohydrates * factor;
     }
+    calorieContent = parseFloat(calorieContent.toFixed(1));
+    proteins = parseFloat(proteins.toFixed(1));
+    fats = parseFloat(fats.toFixed(1));
+    carbohydrates = parseFloat(carbohydrates.toFixed(1));
     return { calorieContent, proteins, fats, carbohydrates };
 }
 //# sourceMappingURL=nutrition.js.map
