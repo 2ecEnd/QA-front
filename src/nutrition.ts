@@ -31,5 +31,10 @@ export function calculateCpfc(
     carbohydrates += product.Carbohydrates * factor;
   }
 
+  calorieContent = parseFloat(calorieContent.toFixed(1));
+  proteins = parseFloat(proteins.toFixed(1));
+  fats = parseFloat(fats.toFixed(1));
+  carbohydrates = parseFloat(carbohydrates.toFixed(1));
+
   return { calorieContent, proteins, fats, carbohydrates };
 }

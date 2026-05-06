@@ -3,7 +3,7 @@ import { ProductCategory, CookingNecessity, DishCategory, Flag, MacroMap, MacroR
 import * as api from './api.js';
 import * as ui from './ui.js';
 import { showToast, debounce, getElement, getAllElements, escapeHtml } from './utils.js';
-import { calculateNutrition } from './nutrition.js';
+import { calculateCpfc } from './nutrition.js';
 // -=-=-=-=-=-=-=-=-=-=- Глобальное состояние -=-=-=-=-=-=-=-=-=-=-
 let products = [];
 let dishes = [];
@@ -346,7 +346,7 @@ function buildAndOpenDishForm(existing) {
     const size = existing?.Size ?? 0;
     const category = existing?.Category ?? DishCategory.SECOND;
     // Опции для выпадающих списков продуктов
-    const productOptions = products.map(p => `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(0)})</option>`).join('');
+    const productOptions = products.map(p => `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(1)})</option>`).join('');
     const compositionRows = composition.map((ing, i) => `
     <div class="composition-row" data-index="${i}">
       <select class="comp-product" required>
@@ -500,7 +500,7 @@ function recalculateDishKbju() {
         });
         productMap.set(productId, product);
     }
-    const nutrition = calculateNutrition(ingredients, productMap);
+    const nutrition = calculateCpfc(ingredients, productMap);
     // Заполняем поля формы
     const calInput = getElement('#dishCalorieContent');
     const protInput = getElement('#dishProteins');
@@ -544,7 +544,7 @@ function attachDishFormHandlers(isEdit, existingId, existingPhotos) {
     let selectedFiles = [];
     // Добавление строки состава
     btnAddRow.addEventListener('click', () => {
-        const productOptions = products.map(p => `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(0)})</option>`).join('');
+        const productOptions = products.map(p => `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(1)})</option>`).join('');
         const row = document.createElement('div');
         row.className = 'composition-row';
         row.innerHTML = `

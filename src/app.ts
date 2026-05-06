@@ -406,7 +406,7 @@ function buildAndOpenDishForm(existing?: DishDto) {
 
   // Опции для выпадающих списков продуктов
   const productOptions = products.map(p =>
-    `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(0)})</option>`
+    `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(1)})</option>`
   ).join('');
 
   const compositionRows = composition.map((ing, i) => `
@@ -618,7 +618,7 @@ function attachDishFormHandlers(isEdit: boolean, existingId: string | undefined,
   // Добавление строки состава
   btnAddRow.addEventListener('click', () => {
     const productOptions = products.map(p =>
-      `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(0)})</option>`
+      `<option value="${p.Id}" data-name="${escapeHtml(p.Name)}" data-cal="${p.CalorieContent}" data-prot="${p.Proteins}" data-fat="${p.Fats}" data-carb="${p.Carbohydrates}" data-flags='${JSON.stringify(p.Flags)}'>${escapeHtml(p.Name)} (🔥${p.CalorieContent.toFixed(1)})</option>`
     ).join('');
     const row = document.createElement('div');
     row.className = 'composition-row';
