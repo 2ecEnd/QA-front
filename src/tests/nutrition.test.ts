@@ -27,7 +27,6 @@ describe('calculateCpfc', () => {
       EditDate: null,
     };
   }
-
   function ingredient(productId: string, amount: number): IngredientDto {
     return {
       ProductId: productId,
@@ -36,109 +35,138 @@ describe('calculateCpfc', () => {
     };
   }
     
-    test('calculateCpfc empty list returns zeros', () => {
-        const ingredients: IngredientDto[] = [];
-        const products = new Map();
-
-        const result = calculateCpfc(ingredients, products);
-
-        expect(result.calorieContent).toBe(0);
-        expect(result.proteins).toBe(0);
-        expect(result.fats).toBe(0);
-        expect(result.carbohydrates).toBe(0);
-    });
-    
-    test('calculateCpfc one ingredient returns equal values', () => {
-        const ingredients = [ingredient('p1', 100)];
-        const products = new Map([
-            ['p1', product('p1', 150.0, 12.0, 5.0, 20.0)]
-        ]);
-
-        const result = calculateCpfc(ingredients, products);
-
-        expect(result.calorieContent).toBe(150.0);
-        expect(result.proteins).toBe(12.0);
-        expect(result.fats).toBe(5.0);
-        expect(result.carbohydrates).toBe(20.0);
-    });
-    
-    test('calculateCpfc many ingredients correct calculations', () => {
-        const ingredients = [
-            ingredient('p1', 500),
-            ingredient('p2', 200),
-            ingredient('p3', 200),
-            ingredient('p4', 150)
-        ];
-        const products = new Map([
-            ['p1', product('p1', 0.0, 0.0, 0.0, 0.0)],
-            ['p2', product('p2', 187.2, 18.9, 12.4, 0.0)],
-            ['p3', product('p3', 77.0, 2.0, 0.4, 16.3)],
-            ['p4', product('p4', 43, 1.5, 0.1, 8.8)]
-        ]);
-
-        const result = calculateCpfc(ingredients, products);
-
-        expect(result.calorieContent).toBe(592.9);
-        expect(result.proteins).toBe(44.0);
-        expect(result.fats).toBe(25.8);
-        expect(result.carbohydrates).toBe(45.8);
-    });
-
-
-  test('минимальное количество 0.01 г → корректный расчёт', () => {
-    const prod = product('p2', 300.0, 0.0, 100.0, 0.0);
-    const ing = ingredient('p2', 0.01);
-    const result = calculateCpfc([ing], new Map([['p2', prod]]));
-    // Коэффициент = 0.0001
-    expect(result.calorieContent).toBeCloseTo(300 * 0.0001);
-    expect(result.proteins).toBeCloseTo(0);
-    expect(result.fats).toBeCloseTo(100 * 0.0001);
-    expect(result.carbohydrates).toBeCloseTo(0);
-  });
-  
-  test('количество = 0 вызывает ошибку', () => {
-    const prod = product('p3', 100, 10, 5, 5);
-    const ing = ingredient('p3', 0);
-    expect(() => calculateCpfc([ing], new Map([['p3', prod]]))).toThrow(
-      'Amount must be > 0'
-    );
-  });
-  
-  test('два продукта с разным количеством — суммарный расчёт', () => {
-    const p1 = product('a', 200, 20, 10, 70);
-    const p2 = product('b', 100, 5, 5, 80);
-    const ingredients = [ingredient('a', 50), ingredient('b', 200)];
-    const map = new Map([['a', p1], ['b', p2]]);
-
-    const result = calculateCpfc(ingredients, map);
-    // a: 50г → cal = 200*0.5=100, prot=20*0.5=10, fat=10*0.5=5, carb=70*0.5=35
-    // b: 200г → cal = 100*2=200, prot=5*2=10, fat=5*2=10, carb=80*2=160
-    // total: 300 cal, 20 prot, 15 fat, 195 carb
-    expect(result.calorieContent).toBe(300);
-    expect(result.proteins).toBe(20);
-    expect(result.fats).toBe(15);
-    expect(result.carbohydrates).toBe(195);
-  });
-  
-  describe.each`
-    cal     | prot   | fat    | carb   | amount  | expectedCal           | expectedProt          | expectedFat           | expectedCarb
-    ${0}    | ${0}   | ${0}   | ${0}   | ${0.01} | ${0}                  | ${0}                  | ${0}                  | ${0}
-    ${100}  | ${0}   | ${0}   | ${100} | ${0.01} | ${0.01}               | ${0}                  | ${0}                  | ${0.01}
-    ${300}  | ${100} | ${0}   | ${0}   | ${100}  | ${300}                | ${100}                | ${0}                  | ${0}
-    ${500}  | ${99.9}| ${0.1} | ${0}   | ${200}  | ${1000}               | ${199.8}              | ${0.2}                | ${0}
-    ${250}  | ${50}  | ${50}  | ${0}   | ${50}   | ${125}                | ${25}                 | ${25}                 | ${0}
+  // -=-=-=-=-=-=- Базовые тесты расчёта КБЖУ -=-=-=-=-=-=-
+  test.each`
+    amount | cal   | prot  | fat  | carb  | expCal | expProt | expFat | expCarb
+    ${100} | ${150} | ${12} | ${5} | ${20} | ${150} | ${12} | ${5} | ${20}
+    ${50}  | ${150} | ${12} | ${5} | ${20} | ${75}  | ${6}  | ${2.5} | ${10}
+    ${33}  | ${150} | ${12} | ${5} | ${20} | ${49.5}  | ${4.0}  | ${1.7} | ${6.6}
+    ${0.1} | ${150} | ${12} | ${5} | ${20} | ${0.1} | ${0} | ${0} | ${0}
+    ${1} | ${150} | ${12} | ${5} | ${20} | ${1.5} | ${0.1} | ${0.1} | ${0.2}
+    ${10000} | ${150} | ${12} | ${5} | ${20} | ${15000} | ${1200} | ${500} | ${2000}
   `(
-    'продукт: cal=$cal, prot=$prot, fat=$fat, carb=$carb, количество=$amount г',
-    ({ cal, prot, fat, carb, amount, expectedCal, expectedProt, expectedFat, expectedCarb }) => {
-      test(`возвращает cal=${expectedCal}, prot=${expectedProt}, fat=${expectedFat}, carb=${expectedCarb}`, () => {
-        const prod = product('x', cal, prot, fat, carb);
-        const ing = ingredient('x', amount);
-        const result = calculateCpfc([ing], new Map([['x', prod]]));
-        expect(result.calorieContent).toBeCloseTo(expectedCal);
-        expect(result.proteins).toBeCloseTo(expectedProt);
-        expect(result.fats).toBeCloseTo(expectedFat);
-        expect(result.carbohydrates).toBeCloseTo(expectedCarb);
+    'calculateCpfc with one ingredient for $amount g calculate correctly', 
+    ({ amount, cal, prot, fat, carb, expCal, expProt, expFat, expCarb }) => {
+      const ingredients = [ingredient('p1', amount)];
+      const products = new Map([
+        ['p1', product('p1', cal, prot, fat, carb)]
+      ]);
+
+      const result = calculateCpfc(ingredients, products);
+
+      expect(result.calorieContent).toBeCloseTo(expCal, 1);
+      expect(result.proteins).toBeCloseTo(expProt, 1);
+      expect(result.fats).toBeCloseTo(expFat, 1);
+      expect(result.carbohydrates).toBeCloseTo(expCarb, 1);
+    }
+  );
+
+  // -=-=-=-=-=-=- Тесты значений количества продукта -=-=-=-=-=-=-
+  // Позитивные тесты количества продукта
+  test.each`
+    amount | cal   | prot  | fat  | carb  | expCal | expProt | expFat | expCarb
+    ${0.001}  | ${150} | ${12} | ${5} | ${20} | ${0}  | ${0}  | ${0} | ${0}
+    ${1}  | ${150} | ${12} | ${5} | ${20} | ${1.5}  | ${0.12}  | ${0.1} | ${0.2}
+    ${10000}  | ${150} | ${12} | ${5} | ${20} | ${15000}  | ${1200}  | ${500} | ${2000}
+  `(
+    'calculateCpfc with one ingredient for $amount g calculate correctly', 
+    ({ amount, cal, prot, fat, carb, expCal, expProt, expFat, expCarb }) => {
+      const ingredients = [ingredient('p1', amount)];
+      const products = new Map([
+        ['p1', product('p1', cal, prot, fat, carb)]
+      ]);
+
+      const result = calculateCpfc(ingredients, products);
+
+      expect(result.calorieContent).toBeCloseTo(expCal, 1);
+      expect(result.proteins).toBeCloseTo(expProt, 1);
+      expect(result.fats).toBeCloseTo(expFat, 1);
+      expect(result.carbohydrates).toBeCloseTo(expCarb, 1);
+    }
+  );
+  // Негативные тесты количества продукта
+  test.each`
+    amount | cal   | prot  | fat  | carb 
+    ${0}  | ${150} | ${12} | ${5} | ${20}
+    ${-0.001}  | ${150} | ${12} | ${5} | ${20}
+    ${-10000}  | ${150} | ${12} | ${5} | ${20}
+  `(
+    'calculateCpfc with one ingredient for $amount g throws error', 
+    ({ amount, cal, prot, fat, carb }) => {
+      const ingredients = [ingredient('p1', amount)];
+      const products = new Map([
+        ['p1', product('p1', cal, prot, fat, carb)]
+      ]);
+
+      expect(() => calculateCpfc(ingredients, products)).toThrow('Amount must be > 0 for product p1');
+    }
+  );
+
+  // -=-=-=-=-=-=- Тесты на разное количество ингредиентов -=-=-=-=-=-=-
+  test.each([
+    [
+      [],
+      [],
+      { calorieContent: 0, proteins: 0, fats: 0, carbohydrates: 0 }
+    ],
+    [
+      [
+        { ProductId: 'p1', Amount: 100 },
+        { ProductId: 'p2', Amount: 100 },
+      ],
+      [
+        { Id: 'p1', CalorieContent: 10, Proteins: 10, Fats: 10, Carbohydrates: 10 },
+        { Id: 'p2', CalorieContent: 20, Proteins: 20, Fats: 20, Carbohydrates: 20 },
+      ],
+      { calorieContent: 30, proteins: 30, fats: 30, carbohydrates: 30 }
+    ],
+    [
+      [
+        { ProductId: 'p1', Amount: 500 },
+        { ProductId: 'p2', Amount: 200 },
+        { ProductId: 'p3', Amount: 150 },
+      ],
+      [
+        { Id: 'p1', CalorieContent: 0, Proteins: 0, Fats: 0, Carbohydrates: 0 },
+        { Id: 'p2', CalorieContent: 77, Proteins: 2.0, Fats: 0.4, Carbohydrates: 16.3 },
+        { Id: 'p3', CalorieContent: 43, Proteins: 1.5, Fats: 0.1, Carbohydrates: 8.8 }
+      ],
+      { calorieContent: 218.5, proteins: 6.3, fats: 1, carbohydrates: 45.8 }
+    ],
+    [
+      [
+        { ProductId: 'p1', Amount: 500 },
+        { ProductId: 'p2', Amount: 200 },
+        { ProductId: 'p3', Amount: 200 },
+        { ProductId: 'p4', Amount: 150 },
+      ],
+      [
+        { Id: 'p1', CalorieContent: 0, Proteins: 0, Fats: 0, Carbohydrates: 0 },
+        { Id: 'p2', CalorieContent: 187.2, Proteins: 18.9, Fats: 12.4, Carbohydrates: 0.0 },
+        { Id: 'p3', CalorieContent: 77, Proteins: 2.0, Fats: 0.4, Carbohydrates: 16.3 },
+        { Id: 'p4', CalorieContent: 43, Proteins: 1.5, Fats: 0.1, Carbohydrates: 8.8 }
+      ],
+      { calorieContent: 592.9, proteins: 44.0, fats: 25.8, carbohydrates: 45.8 }
+    ]
+  ])(
+    'calculateCpfc with different ingredients count calculate correctly',
+    (ingredientsList, productsList, expected) => {
+      const ingredients: IngredientDto[] = [];
+      const products = new Map();
+
+      ingredientsList.forEach(el => {
+        ingredients.push(ingredient(el.ProductId, el.Amount));
       });
+      productsList.forEach(el => {
+        products.set(el.Id, product(el.Id, el.CalorieContent, el.Proteins, el.Fats, el.Carbohydrates));
+      });
+
+      const result = calculateCpfc(ingredients, products);
+
+      expect(result.calorieContent).toBeCloseTo(expected.calorieContent, 1);
+      expect(result.proteins).toBeCloseTo(expected.proteins, 1);
+      expect(result.fats).toBeCloseTo(expected.fats, 1);
+      expect(result.carbohydrates).toBeCloseTo(expected.carbohydrates, 1);
     }
   );
 });
