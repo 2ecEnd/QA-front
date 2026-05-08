@@ -43,8 +43,10 @@ describe('calculateCpfc', () => {
     ${50}  | ${150} | ${12} | ${5} | ${20} | ${75}  | ${6}  | ${2.5} | ${10}
     ${33}  | ${150} | ${12} | ${5} | ${20} | ${49.5}  | ${4.0}  | ${1.7} | ${6.6}
     ${0.1} | ${150} | ${12} | ${5} | ${20} | ${0.1} | ${0} | ${0} | ${0}
+    ${0.0001} | ${150} | ${12} | ${5} | ${20} | ${0} | ${0} | ${0} | ${0}
     ${1} | ${150} | ${12} | ${5} | ${20} | ${1.5} | ${0.1} | ${0.1} | ${0.2}
     ${10000} | ${150} | ${12} | ${5} | ${20} | ${15000} | ${1200} | ${500} | ${2000}
+    ${10000000} | ${150} | ${12} | ${5} | ${20} | ${15000000} | ${1200000} | ${500000} | ${2000000}
   `(
     'calculateCpfc one ingredient for $amount calculate correctly', 
     ({ amount, cal, prot, fat, carb, expCal, expProt, expFat, expCarb }) => {
@@ -65,8 +67,10 @@ describe('calculateCpfc', () => {
   test.each`
     amount | cal   | prot  | fat  | carb 
     ${0}  | ${150} | ${12} | ${5} | ${20}
-    ${-0.001}  | ${150} | ${12} | ${5} | ${20}
+    ${-0.1}  | ${150} | ${12} | ${5} | ${20}
+    ${-0.0001}  | ${150} | ${12} | ${5} | ${20}
     ${-10000}  | ${150} | ${12} | ${5} | ${20}
+    ${-10000000}  | ${150} | ${12} | ${5} | ${20}
   `(
     'calculateCpfc one ingredient for $amount throws error', 
     ({ amount, cal, prot, fat, carb }) => {
@@ -128,12 +132,8 @@ describe('calculateCpfc', () => {
   );
 
   // -=-=-=-=-=-=- Тесты на разное количество ингредиентов -=-=-=-=-=-=-
+  // Позитивные тесты на разное количество ингредиентов
   test.each([
-    [
-      [],
-      [],
-      { calorieContent: 0, proteins: 0, fats: 0, carbohydrates: 0 }
-    ],
     [
       [
         { ProductId: 'p1', Amount: 100 },
@@ -194,6 +194,13 @@ describe('calculateCpfc', () => {
       expect(result.carbohydrates).toBeCloseTo(expected.carbohydrates, 1);
     }
   );
+  // Негативный тест на разное количество ингредиентов
+  test('calculateCpfc ingredients count = 0 throws error', () => {
+    const ingredients: IngredientDto[] = [];
+    const products = new Map();
+
+      expect(() => calculateCpfc(ingredients, products)).toThrow('Ingredients must be > 0');
+  });
 
   // -=-=-=-=-=-=- Тесты с игредиентами, ссылающимися на отсутствующие продукты -=-=-=-=-=-=-
   test.each([

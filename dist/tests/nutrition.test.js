@@ -33,8 +33,10 @@ describe('calculateCpfc', () => {
     ${50}  | ${150} | ${12} | ${5} | ${20} | ${75}  | ${6}  | ${2.5} | ${10}
     ${33}  | ${150} | ${12} | ${5} | ${20} | ${49.5}  | ${4.0}  | ${1.7} | ${6.6}
     ${0.1} | ${150} | ${12} | ${5} | ${20} | ${0.1} | ${0} | ${0} | ${0}
+    ${0.0001} | ${150} | ${12} | ${5} | ${20} | ${0} | ${0} | ${0} | ${0}
     ${1} | ${150} | ${12} | ${5} | ${20} | ${1.5} | ${0.1} | ${0.1} | ${0.2}
     ${10000} | ${150} | ${12} | ${5} | ${20} | ${15000} | ${1200} | ${500} | ${2000}
+    ${10000000} | ${150} | ${12} | ${5} | ${20} | ${15000000} | ${1200000} | ${500000} | ${2000000}
   `('calculateCpfc one ingredient for $amount calculate correctly', ({ amount, cal, prot, fat, carb, expCal, expProt, expFat, expCarb }) => {
         const ingredients = [ingredient('p1', amount)];
         const products = new Map([
@@ -50,8 +52,10 @@ describe('calculateCpfc', () => {
     test.each `
     amount | cal   | prot  | fat  | carb 
     ${0}  | ${150} | ${12} | ${5} | ${20}
-    ${-0.001}  | ${150} | ${12} | ${5} | ${20}
+    ${-0.1}  | ${150} | ${12} | ${5} | ${20}
+    ${-0.0001}  | ${150} | ${12} | ${5} | ${20}
     ${-10000}  | ${150} | ${12} | ${5} | ${20}
+    ${-10000000}  | ${150} | ${12} | ${5} | ${20}
   `('calculateCpfc one ingredient for $amount throws error', ({ amount, cal, prot, fat, carb }) => {
         const ingredients = [ingredient('p1', amount)];
         const products = new Map([
@@ -59,13 +63,47 @@ describe('calculateCpfc', () => {
         ]);
         expect(() => calculateCpfc(ingredients, products)).toThrow('Amount must be > 0 for product p1');
     });
+    // -=-=-=-=-=-=- Тесты значений КБЖУ продукта -=-=-=-=-=-=-
+    // Негативные тесты значений КБЖУ продукта
+    test.each `
+    amount | cal   | prot  | fat  | carb 
+    ${100} | ${-1} | ${0} | ${0} | ${0}
+    ${100} | ${0} | ${-1} | ${0} | ${0}
+    ${100} | ${0} | ${0} | ${-1} | ${0}
+    ${100} | ${0} | ${0} | ${0} | ${-1}
+    ${100} | ${0} | ${101} | ${0} | ${0}
+    ${100} | ${0} | ${0} | ${101} | ${0}
+    ${100} | ${0} | ${0} | ${0} | ${101}
+  `('calculateCpfc incorrect CPFC throws error', ({ amount, cal, prot, fat, carb }) => {
+        const ingredients = [ingredient('p1', amount)];
+        const products = new Map([
+            ['p1', product('p1', cal, prot, fat, carb)]
+        ]);
+        expect(() => calculateCpfc(ingredients, products)).toThrow('Incorrect CPFC');
+    });
+    // Позитивные тесты значений КБЖУ продукта
+    test.each `
+    amount | cal   | prot  | fat  | carb  | expCal | expProt | expFat | expCarb
+    ${100} | ${0} | ${100} | ${0} | ${0} | ${0} | ${100} | ${0} | ${0}
+    ${100} | ${0} | ${0} | ${100} | ${0} | ${0} | ${0} | ${100} | ${0}
+    ${100} | ${0} | ${0} | ${0} | ${100} | ${0} | ${0} | ${0} | ${100}
+    ${100} | ${0} | ${99} | ${0} | ${0} | ${0} | ${99} | ${0} | ${0}
+    ${100} | ${0} | ${0} | ${99} | ${0} | ${0} | ${0} | ${99} | ${0}
+    ${100} | ${0} | ${0} | ${0} | ${99} | ${0} | ${0} | ${0} | ${99}
+  `('calculateCpfc valid CPFC calculate correctly', ({ amount, cal, prot, fat, carb, expCal, expProt, expFat, expCarb }) => {
+        const ingredients = [ingredient('p1', amount)];
+        const products = new Map([
+            ['p1', product('p1', cal, prot, fat, carb)]
+        ]);
+        const result = calculateCpfc(ingredients, products);
+        expect(result.calorieContent).toBeCloseTo(expCal, 1);
+        expect(result.proteins).toBeCloseTo(expProt, 1);
+        expect(result.fats).toBeCloseTo(expFat, 1);
+        expect(result.carbohydrates).toBeCloseTo(expCarb, 1);
+    });
     // -=-=-=-=-=-=- Тесты на разное количество ингредиентов -=-=-=-=-=-=-
+    // Позитивные тесты на разное количество ингредиентов
     test.each([
-        [
-            [],
-            [],
-            { calorieContent: 0, proteins: 0, fats: 0, carbohydrates: 0 }
-        ],
         [
             [
                 { ProductId: 'p1', Amount: 100 },
@@ -119,6 +157,12 @@ describe('calculateCpfc', () => {
         expect(result.proteins).toBeCloseTo(expected.proteins, 1);
         expect(result.fats).toBeCloseTo(expected.fats, 1);
         expect(result.carbohydrates).toBeCloseTo(expected.carbohydrates, 1);
+    });
+    // Негативные на разное количество ингредиентов
+    test('calculateCpfc ingredients count = 0 throws error', () => {
+        const ingredients = [];
+        const products = new Map();
+        expect(() => calculateCpfc(ingredients, products)).toThrow('Ingredients must be > 0');
     });
     // -=-=-=-=-=-=- Тесты с игредиентами, ссылающимися на отсутствующие продукты -=-=-=-=-=-=-
     test.each([
@@ -204,19 +248,6 @@ describe('calculateCpfc', () => {
         expect(result.proteins).toBeCloseTo(expected.proteins, 1);
         expect(result.fats).toBeCloseTo(expected.fats, 1);
         expect(result.carbohydrates).toBeCloseTo(expected.carbohydrates, 1);
-    });
-    test.each `
-    amount | cal   | prot  | fat  | carb 
-    ${100} | ${-1} | ${0} | ${0} | ${0}
-    ${100} | ${0} | ${-1} | ${0} | ${0}
-    ${100} | ${0} | ${0} | ${-1} | ${0}
-    ${100} | ${0} | ${0} | ${0} | ${-1}
-  `('calculateCpfc incorrect CPFC throws error', ({ amount, cal, prot, fat, carb }) => {
-        const ingredients = [ingredient('p1', amount)];
-        const products = new Map([
-            ['p1', product('p1', cal, prot, fat, carb)]
-        ]);
-        expect(() => calculateCpfc(ingredients, products)).toThrow('Incorrect CPFC');
     });
 });
 //# sourceMappingURL=nutrition.test.js.map

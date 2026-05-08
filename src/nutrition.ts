@@ -11,6 +11,10 @@ export function calculateCpfc(
   ingredients: IngredientDto[],
   productMap: Map<string, ProductDto>
 ): Nutrition {
+  if (ingredients.length <= 0) {
+    throw new Error(`Ingredients must be > 0`);
+  }
+
   let calorieContent = 0;
   let proteins = 0;
   let fats = 0;
