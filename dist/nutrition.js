@@ -10,6 +10,12 @@ export function calculateCpfc(ingredients, productMap) {
         const product = productMap.get(ing.ProductId);
         if (!product)
             continue;
+        if ((product.CalorieContent < 0) ||
+            (product.Proteins > 100 || product.Proteins < 0) ||
+            (product.Fats > 100 || product.Fats < 0) ||
+            (product.Carbohydrates > 100 || product.Carbohydrates < 0)) {
+            throw new Error(`Incorrect CPFC`);
+        }
         const factor = ing.Amount / 100;
         calorieContent += product.CalorieContent * factor;
         proteins += product.Proteins * factor;
