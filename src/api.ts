@@ -70,12 +70,12 @@ export async function createProduct(data: CreateProductRequest): Promise<CreateE
 }
 
 export async function updateProduct(id: string, data: ChangeProductRequest): Promise<ChangeEntityResponse> {
-  return request<ChangeEntityResponse>('PATCH', `/products/${id}/update`, data);
+  return request<ChangeEntityResponse>('PUT', `/products/${id}/update`, data);
 }
 
 export async function deleteProduct(id: string): Promise<DeleteProductResponse> {
   const url = API_BASE + `/products/${id}/delete`;
-  const resp = await fetch(url, { method: 'GET' });
+  const resp = await fetch(url, { method: 'DELETE' });
   const text = await resp.text();
   const data = text ? (JSON.parse(text) as DeleteProductResponse) : null;
 
@@ -125,7 +125,7 @@ export async function updateDish(id: string, data: ChangeDishRequest): Promise<C
 }
 
 export async function deleteDish(id: string): Promise<DeleteEntityResponse> {
-  return request<DeleteEntityResponse>('GET', `/dishes/${id}/delete`);
+  return request<DeleteEntityResponse>('DELETE', `/dishes/${id}/delete`);
 }
 
 // ─── Upload ─────────────────────────────

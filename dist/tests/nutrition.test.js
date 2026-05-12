@@ -158,7 +158,7 @@ describe('calculateCpfc', () => {
         expect(result.fats).toBeCloseTo(expected.fats, 1);
         expect(result.carbohydrates).toBeCloseTo(expected.carbohydrates, 1);
     });
-    // Негативные на разное количество ингредиентов
+    // Негативный тест на разное количество ингредиентов
     test('calculateCpfc ingredients count = 0 throws error', () => {
         const ingredients = [];
         const products = new Map();

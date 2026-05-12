@@ -48,11 +48,11 @@ export async function createProduct(data) {
     return request('POST', '/products/create', data);
 }
 export async function updateProduct(id, data) {
-    return request('PATCH', `/products/${id}/update`, data);
+    return request('PUT', `/products/${id}/update`, data);
 }
 export async function deleteProduct(id) {
     const url = API_BASE + `/products/${id}/delete`;
-    const resp = await fetch(url, { method: 'GET' });
+    const resp = await fetch(url, { method: 'DELETE' });
     const text = await resp.text();
     const data = text ? JSON.parse(text) : null;
     // Если успех (200) и Acknowledge === true – всё хорошо
@@ -92,7 +92,7 @@ export async function updateDish(id, data) {
     return request('PUT', `/dishes/${id}/update`, data);
 }
 export async function deleteDish(id) {
-    return request('GET', `/dishes/${id}/delete`);
+    return request('DELETE', `/dishes/${id}/delete`);
 }
 // ─── Upload ─────────────────────────────
 export async function uploadImage(file) {

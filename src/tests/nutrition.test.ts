@@ -199,7 +199,7 @@ describe('calculateCpfc', () => {
     const ingredients: IngredientDto[] = [];
     const products = new Map();
 
-      expect(() => calculateCpfc(ingredients, products)).toThrow('Ingredients must be > 0');
+    expect(() => calculateCpfc(ingredients, products)).toThrow('Ingredients must be > 0');
   });
 
   // -=-=-=-=-=-=- Тесты с игредиентами, ссылающимися на отсутствующие продукты -=-=-=-=-=-=-
