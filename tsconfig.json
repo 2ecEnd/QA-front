@@ -9,9 +9,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "types": ["jest"]
+    "sourceMap": true
   },
-  "include": ["src/**/*.ts", "src/tests/nutrition.test.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"]
 }

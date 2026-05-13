@@ -394,19 +394,19 @@ function buildAndOpenDishForm(existing) {
         <div class="form-row">
           <div class="form-group">
             <label>Калорийность (ккал / порция) <span class="form-hint">(авто-расчёт)</span></label>
-            <input type="number" class="form-input" name="CalorieContent" id="dishCalorieContent" value="${existing?.CalorieContent ?? ''}" required min="0" step="any">
+            <input type="number" class="form-input" name="CalorieContent" id="dishCalorieContent" value="${existing?.CalorieContent ?? ''}" required step="any">
           </div>
           <div class="form-group">
             <label>Белки (г / порция)</label>
-            <input type="number" class="form-input" name="Proteins" id="dishProteins" value="${existing?.Proteins ?? ''}" required min="0" max="100" step="any">
+            <input type="number" class="form-input" name="Proteins" id="dishProteins" value="${existing?.Proteins ?? ''}" required min="0" step="any">
           </div>
           <div class="form-group">
             <label>Жиры (г / порция)</label>
-            <input type="number" class="form-input" name="Fats" id="dishFats" value="${existing?.Fats ?? ''}" required min="0" max="100" step="any">
+            <input type="number" class="form-input" name="Fats" id="dishFats" value="${existing?.Fats ?? ''}" required min="0" step="any">
           </div>
           <div class="form-group">
             <label>Углеводы (г / порция)</label>
-            <input type="number" class="form-input" name="Carbohydrates" id="dishCarbohydrates" value="${existing?.Carbohydrates ?? ''}" required min="0" max="100" step="any">
+            <input type="number" class="form-input" name="Carbohydrates" id="dishCarbohydrates" value="${existing?.Carbohydrates ?? ''}" required min="0" step="any">
           </div>
         </div>
         <div class="form-group">
