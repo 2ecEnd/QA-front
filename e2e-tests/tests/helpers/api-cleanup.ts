@@ -10,12 +10,12 @@ async function fetchJson(url: string, options?: RequestInit) {
 }
 
 export async function cleanupDatabase() {
-  // Удаляем все блюда
+  
   const dishes = await fetchJson(`${API_BASE}/dishes`) as DishDto[];
   for (const d of dishes) {
     deleteDish(d.Id);
   }
-  // Удаляем все продукты
+  
   const products = await fetchJson(`${API_BASE}/products`) as ProductDto[];
   for (const p of products) {
     deleteProduct(p.Id);

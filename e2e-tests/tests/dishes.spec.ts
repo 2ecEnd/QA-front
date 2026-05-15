@@ -46,6 +46,10 @@ const productInputflagVegan = '#productForm input[name="Flag_VEGAN"]';
 const productInputflagGlutenFree = '#productForm input[name="Flag_GLUTEN_FREE"]';
 const productInputflagSugarFree = '#productForm input[name="Flag_SUGAR_FREE"]';
 
+const detailItem = '.detail-item';
+const modalHeader = '.modal-header';
+const modalBodyImg = '.modal-body img';
+
 const dishInvalidCpfc = [
   { cal: '-1', prot: '0', fats: '0', carb: '0' },
   { cal: '0', prot: '-1', fats: '0', carb: '0' },
@@ -170,6 +174,23 @@ test.describe('Dishes', () => {
       await page.waitForSelector(dishList);
       await expect(page.locator(dishCardTitle)).toContainText('Свекольный суп');
     });
+
+    test('Create dish valida data with macros success ', async ({ page }) => {
+      await page.click(dishPage);
+      await page.click(btnAddDish);
+      await page.fill(inputName, '!супСвекольный суп');
+      await page.locator(dishCompProduct).selectOption({ label: 'Свекла (🔥43.0)' });
+      await page.locator(dishCompAmount).fill('150');
+      await page.fill(dishSize, '100');
+      await page.click(btnSubmitDish);
+
+      await page.waitForSelector(dishList);
+      await expect(page.locator(dishCardTitle)).toContainText('Свекольный суп');
+      await page.locator(dishCard).click();
+      const categoryRow = page.locator(detailItem)
+        .filter({ hasText: 'Категория' });
+      await expect(categoryRow).toContainText('Суп');
+    });
   });
 
   test.describe('Retrieve dish', () => {
@@ -217,23 +238,23 @@ test.describe('Dishes', () => {
     test('Retrieve dish just created dish has correct data', async ({ page }) => {
       await page.locator(dishCard).click();
 
-      const name = page.locator('.modal-header');
-      const photos = page.locator('.modal-body img');
-      const caloriesRow = page.locator('.detail-item')
+      const name = page.locator(modalHeader);
+      const photos = page.locator(modalBodyImg);
+      const caloriesRow = page.locator(detailItem)
         .filter({ hasText: 'Калорийность' });
-      const proteinsRow = page.locator('.detail-item')
+      const proteinsRow = page.locator(detailItem)
         .filter({ hasText: 'Белки' });
-      const fatsRow = page.locator('.detail-item')
+      const fatsRow = page.locator(detailItem)
         .filter({ hasText: 'Жиры' });
-      const carbohydratesRow = page.locator('.detail-item')
+      const carbohydratesRow = page.locator(detailItem)
         .filter({ hasText: 'Углеводы' });
-      const categoryRow = page.locator('.detail-item')
+      const categoryRow = page.locator(detailItem)
         .filter({ hasText: 'Категория' });
-      const flagsRow = page.locator('.detail-item')
+      const flagsRow = page.locator(detailItem)
         .filter({ hasText: 'Флаги' });
-      const createdAtRow = page.locator('.detail-item')
+      const createdAtRow = page.locator(detailItem)
         .filter({ hasText: 'Создан' });
-      const updatedAtRow = page.locator('.detail-item')
+      const updatedAtRow = page.locator(detailItem)
         .filter({ hasText: 'Изменён' });
 
       await expect(name).toContainText('Свекольный суп');
@@ -279,27 +300,27 @@ test.describe('Dishes', () => {
 
       await page.click(dishCard);
 
-      const name = page.locator('.modal-header');
-      const photos = page.locator('.modal-body img');
-      const caloriesRow = page.locator('.detail-item')
+      const name = page.locator(modalHeader);
+      const photos = page.locator(modalBodyImg);
+      const caloriesRow = page.locator(detailItem)
         .filter({ hasText: 'Калорийность' });
-      const sizeRow = page.locator('.detail-item')
+      const sizeRow = page.locator(detailItem)
         .filter({ hasText: 'Размер порции' });
-      const proteinsRow = page.locator('.detail-item')
+      const proteinsRow = page.locator(detailItem)
         .filter({ hasText: 'Белки' });
-      const fatsRow = page.locator('.detail-item')
+      const fatsRow = page.locator(detailItem)
         .filter({ hasText: 'Жиры' });
-      const carbohydratesRow = page.locator('.detail-item')
+      const carbohydratesRow = page.locator(detailItem)
         .filter({ hasText: 'Углеводы' });
-      const categoryRow = page.locator('.detail-item')
+      const categoryRow = page.locator(detailItem)
         .filter({ hasText: 'Категория' });
-      const flagsRow = page.locator('.detail-item')
+      const flagsRow = page.locator(detailItem)
         .filter({ hasText: 'Флаги' });
-      const createdAtRow = page.locator('.detail-item')
+      const createdAtRow = page.locator(detailItem)
         .filter({ hasText: 'Создан' });
-      const updatedAtRow = page.locator('.detail-item')
+      const updatedAtRow = page.locator(detailItem)
         .filter({ hasText: 'Изменён' });
-      const ingredients = page.locator('.detail-item')
+      const ingredients = page.locator(detailItem)
         .filter({ hasText: 'Продукт' });
 
       await expect(name).toContainText('Борщ!!!');
@@ -445,58 +466,6 @@ test.describe('Dishes', () => {
 
 /*
 test.describe('Блюда', () => {
-  test.beforeEach(async ({ page }) => {
-    await cleanupDatabase();
-    // Предварительно создаём продукт для составов
-    await page.goto('/');
-    await page.click('text=🍎 Продукты');
-    await page.click('#btnAddProduct');
-    await page.fill('input[name="Name"]', 'Курица');
-    await page.fill('input[name="CalorieContent"]', '110');
-    await page.fill('input[name="Proteins"]', '23');
-    await page.fill('input[name="Fats"]', '1');
-    await page.fill('input[name="Carbohydrates"]', '0');
-    await page.click('#btnSubmitProduct');
-    // Переходим на блюда
-    await page.click('text=🍽️ Блюда');
-    await page.waitForSelector('#dishList');
-  });
-
-  test.describe('Создание блюда', () => {
-    test('Авто-расчёт КБЖУ по составу', async ({ page }) => {
-      await page.click('#btnAddDish');
-      await page.fill('input[name="Name"]', 'Куриное филе');
-      await page.selectOption('.comp-product', { label: 'Курица' });
-      await page.fill('.comp-amount', '200');  // 200 г
-      // Ожидаем, что поля КБЖУ автоматически заполнятся: 110*2=220 ккал, 23*2=46 белка, 1*2=2 жира, 0
-      await expect(page.locator('#dishCalorieContent')).toHaveValue('220.0');
-      await expect(page.locator('#dishProteins')).toHaveValue('46.0');
-      await expect(page.locator('#dishFats')).toHaveValue('2.0');
-      await expect(page.locator('#dishCarbohydrates')).toHaveValue('0.0');
-      // Заполняем размер порции (должен быть >0)
-      await page.fill('#dishSize', '200');
-      await page.click('#btnSubmitDish');
-      await expect(page.locator('.card-title')).toContainText('Куриное филе');
-    });
-
-    test('Макрос "!суп" в названии – категория автоматически становится "Суп"', async ({ page }) => {
-      await page.click('#btnAddDish');
-      await page.fill('input[name="Name"]', '!суп Борщ');
-      await page.selectOption('.comp-product', { label: 'Курица' });
-      await page.fill('.comp-amount', '100');
-      await page.fill('#dishSize', '300');
-      await page.fill('#dishCalorieContent', '50');
-      await page.fill('#dishProteins', '5');
-      await page.fill('#dishFats', '2');
-      await page.fill('#dishCarbohydrates', '3');
-      // Проверяем, что категория переключилась на "Суп"
-      await expect(page.locator('#dishCategorySelect')).toHaveValue('SOUP');
-      // Проверяем, что макрос исчез из названия после отправки (не можем проверить до отправки, но после – название без макроса)
-      await page.click('#btnSubmitDish');
-      await expect(page.locator('.card-title')).toContainText('Борщ');
-      // Категория в карточке должна быть Суп
-      await expect(page.locator('.card .card-badge')).toContainText('Суп');
-    });
 
     test('Флаг "Веган" недоступен, если продукт не веган', async ({ page }) => {
       await page.click('#btnAddDish');
